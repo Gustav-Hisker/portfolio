@@ -1,3 +1,7 @@
+---
+import ThemeSwitcher from "./ThemeSwitcher.astro"
+---
+
 <div id="nav" class="navbar shadow-sm">
     <script>
         document.getElementById("nav").className += (Math.random()<1/3?" bg-gradient-to-r from-red-500 via-green-500 to-violet-500 text-white":
@@ -5,17 +9,20 @@
     </script>
     <div class="navbar-start">
         <div class="dropdown">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
-        </div>
-        <ul class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-            <li><a>Matrix </a></li>
-            <li><a>Zweite coole Sache</a></li>
-            <li><a>Dritte coole Sache</a></li>
-        </ul>
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
+            </div>
+            <ul class="menu menu-xl dropdown-content bg-base-300 text-base-content rounded-box z-1 mt-3 w-100 p-2 shadow">
+                <li><a href="/row-reducer">Row Reducing Extended Matrices</a></li>
+                <li><a>Zweite coole Sache</a></li>
+                <li><a>Dritte coole Sache</a></li>
+            </ul>
         </div>
     </div>
-    <a class="navbar-center" href="./">
+    <a class="navbar-center text-xl" href="./">
         Gustav Hisker
     </a>
+    <div class="navbar-end">
+        <ThemeSwitcher></ThemeSwitcher>
+    </div>
 </div>
