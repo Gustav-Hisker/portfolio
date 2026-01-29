@@ -1,0 +1,91 @@
+---
+import AboutMe from '../components/AboutMe.astro';
+import Layout from '../layouts/Layout.astro';
+import Hljs from '../layouts/hljs.astro';
+import Code from '../components/Code.astro';
+---
+
+<Layout>
+<div class="p-10">
+    <h1 class="text-8xl">$\pi$</h1>
+    <h2 class="text-4xl">Generating $\pi$</h2>
+    <p class="text-xl">
+        Reading about how one can calculate $\pi$ with a computer programm, I stumbled on the Paper
+        <a href="https://www.cs.ox.ac.uk/people/jeremy.gibbons/publications/spigot.pdf"><b>Unbounded Spigot Algorithms for the Digits of Pi</b> <i>by Jeremy Gibbons</i> (from 2005)</a>.
+        In this Paper he's dealing with a special kind of algorithms for computing $\pi$. These are ao called <b>spigot algorithms</b>. They are called this because they can yield digits while they are still computing.
+        In this way the output comes like droplets from a spigot. Gibbons specializes even further to <b>unbounded</b> spigot algorithms. He describes them as follows:
+        <p class="text-2xl p-3">"No commitment need be made in advance to the number of digits to be computed; given enough memory, the programs will generate digits ad infinitum."</p>
+    </p>
+    <p class="text-xl">
+        One algorithm he provides is the following one written in <a href="https://en.wikipedia.org/wiki/Haskell"><i>Haskell</i></a>:
+    </p>
+        <Code>pi = g(1,0,1,1,3,3) where
+    g(q,r,t,k,n,l) = if 4*q+r-t &lt; n*t
+    then n : g(10*q,10*(r-n*t),t,k,div(10*(3*q+r))t-10*n,l)
+    else g(q*k,(2*q+r)*l,t*l,k+1,div(q*(7*k+2)+r*l)(t*l),l+2)</Code>
+    <p class="text-xl">
+        I translated the code into Python and rewrote it as an iterative algorithm. Due to the features of spigot algorithms it's very natural to implement it as a generator function: 
+    </p>
+    <pre><code class="hljs language-python">def pi():
+    q, r, t, k, n, l = 1, 0, 1, 1, 3, 3
+    while True:
+        if 4 * q + r - t &lt; n * t:
+            yield n
+            q, r, t, k, n, l = 10 * q, 10 * (r - n * t), t, k, (10 * (3 * q + r)) // t - 10 * n, l
+        else:
+            q, r, t, k, n, l = q * k, (2 * q + r) * l, t * l, k + 1, (q * (7 * k + 2) + r * l) // (t * l), l + 2</code></pre>
+    <br>
+    <p class="text-xl">
+        Using this one can as an trivial example print the digits while they are generated:
+    </p>
+        <pre><code class="hljs language-python">for d in pi(): print(d, end="")</code></pre>
+    <p class="text-xl">
+        Note that this code doesn't print the ".", it prints <code>31415...</code>
+    </p><br>
+    <p class="text-xl">
+        This very plump translation can be optimized to run faster. First one can remove the useless assignments:
+    </p>
+        <pre><code class="hljs language-python">def pi():
+    q, r, t, k, n, l = 1, 0, 1, 1, 3, 3
+    while True:
+        if 4 * q + r - t &lt; n * t:
+            yield n
+            q, r, n = 10 * q, 10 * (r - n * t), (10 * (3 * q + r)) // t - 10 * n
+        else:
+            q, r, t, k, n, l = q * k, (2 * q + r) * l, t * l, k + 1, (q * (7 * k + 2) + r * l) // (t * l), l + 2</code></pre>
+    <br>
+    <p class="text-xl">
+        Secondly some assignments can be done after another saving memory and increasing the speed:
+        <pre><code class="hljs language-python">def pi():
+    q, r, t, k, n, l = 1, 0, 1, 1, 3, 3
+    while True:
+        if 4 * q + r - t &lt; n * t:
+            yield n
+            r, n = 10 * (r - n * t), (10 * (3 * q + r)) // t - 10 * n
+            q *= 10
+        else:
+            t *= l
+            n = (q * (7 * k + 2) + r * l) // t
+            r= (2 * q + r) * l
+            q *= k
+            k += 1
+            l += 2</code></pre>
+
+    </p><br><br>
+    <h2 class="text-4xl">Cry$\pi$tography</h2>
+    <p class="text-xl">
+        A funny application for this generator is to search for a specific number in like 42 (at the 92th and 93th digit of $\pi$), 1337 (at the 4813th to 4816th digit of $\pi$), 666 (at the 2440th to 2442th digit of $\pi$), 1323 (at the 2677th to 2680th digit of $\pi$) or ones birthday in the digits of $\pi$.
+    </p>
+    <p class="text-xl">
+        With this method one can decrypt numbers and by first decoding letters to number also text into pi.
+        The cipher in this case is the number of the digits of $\pi$ which form the number one wants to store.
+    </p><br>
+    <p class="text-xl">
+        For example 15 decodes to 3,2 meaning: Start at the 3th digit, take two digits.<br>
+        3.14<b>15</b>92...<br>
+        About the counting: The initial 3 in front of the "." is the 0th digit.
+    </p>
+
+</div>
+<Hljs>
+</Layout>
