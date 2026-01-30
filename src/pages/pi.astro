@@ -1,12 +1,12 @@
 ---
-import AboutMe from '../components/AboutMe.astro';
 import Layout from '../layouts/Layout.astro';
 import Hljs from '../layouts/hljs.astro';
 import Code from '../components/Code.astro';
+import PiEnc from '../components/Pi/PiEncrypt.astro';
+import PiDec from '../components/Pi/PiDecrypt.astro';
 ---
 
 <Layout title = "π">
-<div class="p-10">
     <h1 class="text-8xl">$\pi$</h1>
     <h2 class="text-4xl">Generating $\pi$</h2>
     <p class="text-xl">
@@ -38,8 +38,8 @@ import Code from '../components/Code.astro';
     <p class="text-xl">
         Using this one can as an trivial example print the digits while they are generated:
     </p>
-        <pre><code class="hljs language-python">for d in pi(): print(d, end="")</code></pre>
-    <p class="text-xl">
+        <pre><code class="hljs language-python">for d in pi(): print(d, end="")</code></pre><br>
+    <p class="text-xl text-info">
         Note that this code doesn't print the ".", it prints <code>31415...</code>
     </p><br>
     <p class="text-xl">
@@ -66,18 +66,17 @@ import Code from '../components/Code.astro';
         else:
             t *= l
             n = (q * (7 * k + 2) + r * l) // t
-            r= (2 * q + r) * l
+            r = (2 * q + r) * l
             q *= k
             k += 1
             l += 2</code></pre>
-
     </p><br><br>
     <h2 class="text-4xl">Cry$\pi$tography</h2>
     <p class="text-xl">
-        A funny application for this generator is to search for a specific number in like 42 (at the 92th and 93th digit of $\pi$), 1337 (at the 4813th to 4816th digit of $\pi$), 666 (at the 2440th to 2442th digit of $\pi$), 1323 (at the 2677th to 2680th digit of $\pi$) or ones birthday in the digits of $\pi$.
+        A funny application for this generator is to search for a specific number like 42 (at the 92th and 93th digit of $\pi$), 1337 (at the 4813th to 4816th digit of $\pi$), 666 (at the 2440th to 2442th digit of $\pi$), 1323 (at the 2677th to 2680th digit of $\pi$) or ones birthday in the digits of $\pi$.
     </p>
     <p class="text-xl">
-        With this method one can decrypt numbers and by first decoding letters to number also text into pi.
+        With this method one can encrypt numbers <i>(and by first encoding letters to number also text)</i> into pi.
         The cipher in this case is the number of the digits of $\pi$ which form the number one wants to store.
     </p><br>
     <p class="text-xl">
@@ -85,9 +84,47 @@ import Code from '../components/Code.astro';
         3.14<b>15</b>92...<br>
         About the counting: The initial 3 in front of the "." is the 0th digit.
     </p><br>
-    <p>
-        
+    <p class="text-xl">
+        One can implement this Algorithm as follows:
     </p>
-</div>
+        <pre><code class="hljs language-python">def piSearch(number: int|str):
+    searchDigits = str(number)
+
+    curr = []
+    for i, d in enumerate(pi()):
+        curr.append(str(d))
+        if len(curr) &gt; len(searchDigits):
+            curr.pop(0)
+
+        if "".join(curr) == searchDigits:
+            return i - len(searchDigits) + 1</code></pre>
+    <br><p class = "text-xl text-info">
+        Note that this is dealing with the digits as string. This allows searching for e.g. "007" which is thereby not mistaken as "7".
+    </p><br>
+    <br><p class = "text-xl">
+        Here you can try this kind of encryption:
+    </p><br>
+    <PiEnc></PiEnc><br>
+    <p class = "text-xl text-warning">
+        Although JavaScript has arbitrary precision arithmetic in form of the BigInt for practical purposes BigInt is limited by most JS-engines.
+        Hence it might happen this tool stops working at some point depending on your browser.
+    </p>
+    <br>
+    <p class = "text-xl">
+        By generating pi up to the place one got by encrypting it one can decrypt it again.
+        This is even more simple then the encryption:
+    </p>
+    <pre><code class="hljs language-python">def piGet(index: int, digitsCount: int):
+    res = ""
+    for i, d in enumerate(pi()):
+        if i &gt;= index:
+            res += str(d)
+            if len(res) &gt;= digitsCount:
+                return res</code></pre><br>
+    <p class="text-xl">Here you can try it yourself:</p>
+    <PiDec></PiDec><br>
+    <p class = "text-xl text-warning">
+        The same limitation is holds for this one.
+    </p>
 <Hljs>
 </Layout>

@@ -1,0 +1,109 @@
+<script id="worker" type="javascript">
+let q = 1n
+let r = 0n
+let t = 1n
+let k = 1n
+let n = 3n
+let l = 3n
+let pi = ""
+let length = 0
+let currRoutine = 0
+
+let nextPublish = 0;
+
+function next(){
+    if (4n * q + r - t < n * t){
+        pi += n;
+        length++;
+        let nn = (10n * (3n * q + r)) / t - 10n * n;
+        r = 10n * (r - n * t);
+        n = nn;
+        q *= 10n;
+    }
+    else{
+        t *= l;
+        n = (q * (7n * k + 2n) + r * l) / t;
+        r = (2n * q + r) * l;
+        q *= k;
+        k += 1n;
+        l += 2n;
+    }
+}
+
+function sleep(fff) {
+  return new Promise(rs => setTimeout(rs, fff));
+}
+
+
+async function search(searchWord){
+    let i = 0
+    let w = searchWord.length;
+
+    let x = ++currRoutine;
+    while (currRoutine == x){
+        try {
+            while (length < i + w){
+                next();
+            }
+        } catch (e) {
+            postMessage({f: "<span class='text-error'>Integer limit reached.</span>", l:length});
+            console.log(q,r,t,k,n,l)
+            return;
+        }
+
+        if (searchWord == pi.substring(i, i+w)) {
+            postMessage({f: "Found <span class='text-accent'>" + searchWord + "</span> at the <span class='text-accent'>" + i + "</span>th" + (w==1?"":" to <span class='text-accent'>" + (i+w-1) + "</span>th") + " digit of π", l:length});
+            return;
+        }
+
+        if (nextPublish < Date.now()){
+            postMessage({f: "Searching...", l:length});
+            nextPublish = Date.now()+500;
+            await sleep(1);
+        }
+
+        i++;
+    }
+}
+
+
+onmessage = (e) => {
+    if (/^[0-9]+$/.test(e.data)){
+        search(e.data)
+    }else if (e.data != "") {
+        postMessage({f: "Invalid", l:length})
+    }
+};
+</script>
+
+
+<div class="bg-base-300 shadow-sm w-full p-1 m-1">
+    <h1 class="text-4xl">Encry$\pi$t</h1>
+    <div class="p-2">
+        <input class="w-full text-2xl p-2" id="pi-enc-in" type="text" name="search" placeholder="Enter number to search">
+    </div>
+    <p class="text-2xl m-3">Searched <span id="piLength" class="text-accent">0</span> digits of pi.</p>
+    <p id="pi-enc-out" class="text-3xl  m-3"></p>
+</div>
+
+<script type="text/javascript">
+const input = document.getElementById("pi-enc-in");
+const output = document.getElementById("pi-enc-out");
+const piLength = document.getElementById("piLength");
+
+var blob = new Blob([document.getElementById("worker").textContent], { type: "text/javascript" })
+
+var encWorker = new Worker(window.URL.createObjectURL(blob));
+
+input.addEventListener("input", (e)=>{
+    encWorker.postMessage(e.target.value);
+});
+
+encWorker.onmessage = (e) => {
+  const f = e.data.f;
+  const l = e.data.l;
+  
+  output.innerHTML = f;
+  piLength.innerText = l;
+};
+</script>

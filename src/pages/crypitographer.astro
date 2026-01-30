@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hljs from '../layouts/hljs.astro';
+import Code from '../components/Code.astro';
+import PiEnc from '../components/Pi/PiEncrypt.astro';
+import PiDec from '../components/Pi/PiDecrypt.astro';
+---
+
+<Layout title="Cryπtographer">
+    <h1 class="text-6xl">Cry$\pi$tographer</h1>
+    <p class="text-xl">This tool finds where a specific number/string appears in the digits of $\pi$:</p><br>
+    <PiEnc></PiEnc><br>
+    <p class="text-xl">This tool does the opposite and gives you the digits of $\pi$ at a specific position:</p><br>
+    <PiDec></PiDec><br>
+    <p class = "text-xl text-warning">
+        Although JavaScript has arbitrary precision arithmetic in form of the BigInt for practical purposes BigInt is limited by most JS-engines.
+        Hence it might happen this tool stops working at some point depending on your browser.
+    </p>
+    <p class = "text-xl text-primary">
+        If you want to know more about this and especially how it works <i>including how $\pi$ is calculated</i>
+        you find more information and Python code to run it for yourself <i>without the limitation of JavaScript</i> <a href="/pi"><b>here</b></a>.
+    </p>
+</Layout>

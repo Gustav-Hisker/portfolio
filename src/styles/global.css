@@ -89,6 +89,7 @@ code.hljs {
 .hljs {
     background: #202020;
     color: #CCCCCC;
+    border-radius: 1em;
 }
 
 .hljs-comment,
