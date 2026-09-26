@@ -2,10 +2,37 @@
 <script>
     import Complex from 'complex.js';
 
-// Reusing an object instance or allocating directly 
-const z1 = new Complex(2, 3);
-const z2 = new Complex(1, 4);
+    const canvas = document.getElementById("ComplexFunc") as HTMLCanvasElement;
+    const ctx : CanvasRenderingContext2D = canvas.getContext("2d");
 
-// Complex.js performs immediate calculation without parser layers
-const result = z1.mul(z2); // -10 + 11i
+    const zoom = 50
+
+    function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
+    function invScreentf(x : number, y : number) : [number,number] {return [x-canvas.width/2, y-canvas.height/2]}
+
+    function CtoScreen(z : Complex) : [number,number]{return [z.re*zoom+canvas.width/2, z.im*zoom+canvas.height/2]}
+    function ScreentoC(x : number, y : number){ return Complex(x-canvas.width/2, (y-canvas.height/2)).div(zoom)}
+
+
+    function  drawCoords(){
+        ctx.lineWidth = 5
+        ctx.strokeStyle = "#000000"
+        ctx.beginPath()
+        ctx.moveTo(...screentf(0,-canvas.height))
+        ctx.lineTo(...screentf(0,canvas.height))
+        ctx.moveTo(...screentf(-canvas.width,0))
+        ctx.lineTo(...screentf(canvas.width,0))
+
+        for (let i = Math.floor(-canvas.width/zoom); i < canvas.width/zoom; i++) {
+            ctx.moveTo(...CtoScreen(Complex(i, -0.1)));
+            ctx.lineTo(...CtoScreen(Complex(i, +0.1)));
+        }
+
+        for (let i = Math.floor(-canvas.height/zoom); i < canvas.height/zoom; i++) {
+            ctx.moveTo(...CtoScreen(Complex(-0.1, i)));
+            ctx.lineTo(...CtoScreen(Complex(+0.1, i)));
+        }
+    }
+
+    drawCoords();
 </script>
