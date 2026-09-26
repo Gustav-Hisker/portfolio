@@ -1,0 +1,11 @@
+<canvas id="ComplexFunc"></canvas>
+<script>
+    import Complex from 'complex.js';
+
+// Reusing an object instance or allocating directly 
+const z1 = new Complex(2, 3);
+const z2 = new Complex(1, 4);
+
+// Complex.js performs immediate calculation without parser layers
+const result = z1.mul(z2); // -10 + 11i
+</script>
