@@ -151,6 +151,22 @@
             return (z : Complex) => {return lf(z).pow(rf(z))};
         }
 
+        if (s.startsWith("sinh")){
+            let rf = parseFunc(s.substring(4))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return rf(z).sinh()}
+        }
+
+        if (s.startsWith("cosh")){
+            let rf = parseFunc(s.substring(4))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return rf(z).cosh()}
+        }
+
         if (s.startsWith("sin")){
             let rf = parseFunc(s.substring(3))
             
@@ -180,7 +196,7 @@
             
             if (rf == null) return null;
             
-            return (z : Complex) => {return rf(z).re}
+            return (z : Complex) => {let w = rf(z); return (w.add(w.conjugate())).div(2)}
         }
 
         if (s.startsWith("Im")){
@@ -188,7 +204,7 @@
             
             if (rf == null) return null;
             
-            return (z : Complex) => {return rf(z).im}
+            return (z : Complex) => {let w = rf(z); return (w.sub(w.conjugate())).div(Complex(0,2))}
         }
 
         return null;
