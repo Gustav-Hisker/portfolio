@@ -1,12 +1,13 @@
 <canvas id="ComplexFunc" width="2000", height="1000" style='width:94vw; height:47vw;'></canvas>
 <div class="p-2">
-    <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="Enter function to display (allowed symobls: Numbers (decimals with '.'), +, -, *, /, ** (= ^), i, e, p(=π), sin, cos, conj (= conjuate))">
+    <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="Enter function to display (allowed symobls: Numbers (decimals with '.'), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, Re, Im, conj (= conjuate))">
 </div>
 
 
 <script>
-    import { endsWith, length, parse } from 'astro:schema';
-import Complex from 'complex.js';
+    import Complex from 'complex.js';
+
+    const TAU = Complex.PI.mul(2)
 
     const canvas = document.getElementById("ComplexFunc") as HTMLCanvasElement;
     const ctx : CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -70,6 +71,10 @@ import Complex from 'complex.js';
 
         if (s=="p"){
             return (z : Complex) => {return Complex.PI} 
+        }
+
+        if (s=="t"){
+            return (z : Complex) => {return TAU} 
         }
 
         if (s=="z"){
@@ -168,6 +173,22 @@ import Complex from 'complex.js';
             if (rf == null) return null;
             
             return (z : Complex) => {return rf(z).conjugate()}
+        }
+
+        if (s.startsWith("Re")){
+            let rf = parseFunc(s.substring(2))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return rf(z).re}
+        }
+
+        if (s.startsWith("Im")){
+            let rf = parseFunc(s.substring(2))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return rf(z).im}
         }
 
         return null;
