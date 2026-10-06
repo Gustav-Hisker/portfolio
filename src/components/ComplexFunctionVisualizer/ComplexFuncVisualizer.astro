@@ -1,6 +1,10 @@
-<canvas id="ComplexFunc" width="2000", height="1000" style='width:94vw; height:47vw;'></canvas>
+<canvas id="ComplexFunc" width="2000", height="1000" style='width:100%; height:47vw;'></canvas>
 <div class="p-2">
-    <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="Enter function to display (allowed symobls: Numbers (decimals with '.'), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, Re, Im, conj (= conjuate))">
+    <div class="flex align-middle">
+    <h2 class="text-2xl flex-none p-2">f(z) =</h2>
+    <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="e**z">
+    </div>
+    <p class="text-info text-xl p-2">Allowed symbols and Operators: z, (Complex) Numbers (e.g 13.37, 42i, 13 + 23i, ...), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, sinh, cosh, Re, Im, conj (= conjuate)), abs, |⋅|, arg</p>
 </div>
 
 
@@ -21,16 +25,26 @@
 
     input.addEventListener("input", (e) => {
         let cf = parseFunc(input.value)
-        if (cf == null){
-            console.log("error")
-            input.classList.add("error")
+        if (cf == null && input.value != ""){
+            input.classList.add("text-error")
         } else {
-            console.log("success")
-            input.classList.remove("error")
-            f = cf;
+            input.classList.remove("text-error")
+            if (cf != null) f = cf;
+            else f = (z : Complex) => {return Complex.E.pow(z);}
             updateNeeded = true;
         }
     })
+
+    function validBracketing(s:  string) : boolean{
+        let bl = 0
+        for (let i = 0; i < s.length; i++) {
+            if (s.at(i) == "(") bl++;
+            if (s.at(i) == ")") bl--;
+
+            if (bl < 0) return false;
+        }
+        return bl == 0;
+    }
 
     function findFirstUnbracketed(c : string, s:  string) : number{
         let bl = 0
@@ -52,9 +66,19 @@
     function parseFunc(s : string) : Function | null{
         s = s.trim()
 
+        while(s.indexOf("|") != -1){
+            s = s.replace("|","abs(")
+            if (s.indexOf("|") == -1) return null;
+            s = s.replace("|",")")
+        }
+
+        if(!validBracketing(s)) return null
+
         
         while (s.startsWith("(") && s.endsWith(")")){
-            s = s.substring(1,s.length-1).trim()
+            let cs = s.substring(1,s.length-1).trim()
+            if (validBracketing(cs)) s = cs;
+            else break;
         }
 
         if (isNumeric(s)){
@@ -86,7 +110,6 @@
         }
 
         let i = findFirstUnbracketed("+", s)
-        console.log(i)
         if (i != -1){
             let lf = parseFunc(s.substring(0,i))
             let rf = parseFunc(s.substring(i+1))
@@ -207,6 +230,30 @@
             return (z : Complex) => {let w = rf(z); return (w.sub(w.conjugate())).div(Complex(0,2))}
         }
 
+        if (s.startsWith("abs")){
+            let rf = parseFunc(s.substring(3))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).abs())}
+        }
+
+        if (s.startsWith("arg")){
+            let rf = parseFunc(s.substring(3))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).arg())}
+        }
+        
+        if (s.startsWith("exp")){
+            let rf = parseFunc(s.substring(3))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).exp())}
+        }
+
         return null;
     }
 
@@ -216,6 +263,8 @@
     let x = 0;
     let y = 0;
     let updateNeeded = true;
+    let lastMouseMove = Date.now()
+    let mode = "MOUSE"
 
     canvas.addEventListener("mousemove", (e) => {
         var rect = canvas.getBoundingClientRect(), // abs. size of element
@@ -226,6 +275,9 @@
         y = (e.clientY - rect.top) * scaleY
 
         updateNeeded = true;
+
+        lastMouseMove = Date.now()
+        mode = "MOUSE"
     });
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
@@ -233,6 +285,25 @@
 
     function CtoScreen(z : Complex) : [number,number]{return [z.re*zoom+canvas.width/2, z.im*zoom+canvas.height/2]}
     function ScreentoC(x : number, y : number){ return Complex(x-canvas.width/2, (y-canvas.height/2)).div(zoom)}
+
+
+    function CtoColor(z : Complex) : string{
+        let rdir = Complex.E.pow(Complex.PI.mul(Complex(0,0)))
+        let gdir = Complex.E.pow(Complex.PI.mul(Complex(0,2/3)))
+        let bdir= Complex.E.pow(Complex.PI.mul(Complex(0,4/3)))
+
+
+        let rraw = z.re * rdir.re + z.im * rdir.im
+        let graw = z.re * gdir.re + z.im * gdir.im
+        let braw = z.re * bdir.re + z.im * bdir.im
+
+        let C = 100;
+        rraw *= C, graw *= C, braw *= C
+
+        //console.log("rgb(" + Math.min(255,Math.max(rraw,0)) +","+ Math.min(255,Math.max(graw,0)) + "," + Math.min(255,Math.max(braw,0)) +")")
+
+        return "rgb(" + Math.min(255,Math.max(rraw,0)) +","+ Math.min(255,Math.max(graw,0)) + "," + Math.min(255,Math.max(braw,0)) +")"
+    }
 
 
 
@@ -263,14 +334,14 @@
         ctx.beginPath()
 
         let z = ScreentoC(x,y)
-        for (let i = -3; i <= 3; i++) {
-            for (let j = -3; j < 3; j += 0.01){
+        for (let i = -N; i <= N; i++) {
+            for (let j = -N; j < N; j += 0.01){
                 ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
                 ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
             }
         }
-        for (let i = -3; i <= 3; i++) {
-            for (let j = -3; j < 3; j += 0.01){
+        for (let i = -N; i <= N; i++) {
+            for (let j = -N; j < N; j += 0.01){
                 ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
                 ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
             }
@@ -279,8 +350,64 @@
         ctx.stroke();
     }
 
+    function drawColorGrid(f : Function, z : Complex){
+        ctx.lineWidth = 3
+        ctx.beginPath()
+
+        let M = N
+
+        for (let i = -M; i <= M; i++) {
+            for (let j = -M; j < M; j += 0.01){
+                ctx.strokeStyle = CtoColor(Complex(i, j));
+                ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
+                ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
+                ctx.stroke();
+                ctx.beginPath()
+            }
+        }
+        for (let i = -M; i <= M; i++) {
+            for (let j = -M; j < M; j += 0.01){
+                ctx.strokeStyle = CtoColor(Complex(j, i));
+                ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
+                ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
+                ctx.stroke();
+                ctx.beginPath()
+            }
+        }
+
+        ctx.stroke();
+    }
+
+    function drawColorGridDashed(f : Function, z : Complex){
+        ctx.lineWidth = 3
+        ctx.beginPath()
+
+        let M = N
+
+        for (let i = -M; i <= M; i++) {
+            for (let j = -M; j < M; j += 0.04){
+                ctx.strokeStyle = CtoColor(Complex(i, j));
+                ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
+                ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
+                ctx.stroke();
+                ctx.beginPath()
+            }
+        }
+        for (let i = -M; i <= M; i++) {
+            for (let j = -M; j < M; j += 0.04){
+                ctx.strokeStyle = CtoColor(Complex(j, i));
+                ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
+                ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
+                ctx.stroke();
+                ctx.beginPath()
+            }
+        }
+
+        ctx.stroke();
+    }
+
     function mainloop(){
-        if (!updateNeeded) {setTimeout(mainloop,100); return} 
+        if ((!updateNeeded) && (lastMouseMove + 5*1000 > Date.now())) {setTimeout(mainloop,100); return} 
         updateNeeded = false;
 
         ctx.fillStyle = "#ffffff"
@@ -288,8 +415,18 @@
 
         drawCoords();
 
-        drawMouseGrid("#0000ff", (x : Complex) => {return x});
-        drawMouseGrid("#ff0000", f);
+        if(mode == "MOUSE"){
+            // drawMouseGrid("#0000ff", (x : Complex) => {return x});
+            // drawMouseGrid("#ff0000", f);
+
+            drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
+            drawColorGrid(f, ScreentoC(x,y));
+
+            // if (lastMouseMove + 5*1000 < Date.now()) mode = "ALL";
+        } else {
+            drawColorGridDashed((z : Complex) => {return z;}, Complex.ZERO)
+            drawColorGrid(f, Complex.ZERO)
+        }
 
         
         setTimeout(mainloop,100)
