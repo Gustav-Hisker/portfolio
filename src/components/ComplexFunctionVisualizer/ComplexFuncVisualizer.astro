@@ -1,18 +1,32 @@
 <canvas id="ComplexFunc" width="2000", height="1000" style='width:94vw; height:47vw;'></canvas>
 <script>
-    import { SUPPORTED_MARKDOWN_FILE_EXTENSIONS } from 'astro/dist/core/constants';
 import Complex from 'complex.js';
 
     const canvas = document.getElementById("ComplexFunc") as HTMLCanvasElement;
     const ctx : CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     const zoom = 50
+    const N = 3
+
+    let x = 0;
+    let y = 0;
+
+    canvas.addEventListener("mousemove", (e) => {
+        var rect = canvas.getBoundingClientRect(), // abs. size of element
+        scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for x
+        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
+
+        x = (e.clientX - rect.left) * scaleX
+        y = (e.clientY - rect.top) * scaleY
+    });
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
     function invScreentf(x : number, y : number) : [number,number] {return [x-canvas.width/2, y-canvas.height/2]}
 
     function CtoScreen(z : Complex) : [number,number]{return [z.re*zoom+canvas.width/2, z.im*zoom+canvas.height/2]}
     function ScreentoC(x : number, y : number){ return Complex(x-canvas.width/2, (y-canvas.height/2)).div(zoom)}
+
+
 
     function  drawCoords(){
         ctx.lineWidth = 3
@@ -35,11 +49,36 @@ import Complex from 'complex.js';
         ctx.stroke()
     }
 
+    function drawMouseGrid(c : string, f : Function){
+        ctx.lineWidth = 3
+        ctx.strokeStyle = c
+        ctx.beginPath()
+
+        let z = ScreentoC(x,y)
+        for (let i = -3; i <= 3; i++) {
+            for (let j = -3; j < 3; j += 0.01){
+                ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
+                ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
+            }
+        }
+        for (let i = -3; i <= 3; i++) {
+            for (let j = -3; j < 3; j += 0.01){
+                ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
+                ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
+            }
+        }
+
+        ctx.stroke();
+    }
+
     function mainloop(){
         ctx.fillStyle = "#ffffff"
         ctx.fillRect(-5,-5, canvas.width+10, canvas.height+10)
 
         drawCoords();
+
+        drawMouseGrid("#0000ff", (x : Complex) => {return x});
+        drawMouseGrid("#ff0000", (x : Complex) => {return Complex(10).div(x)});
 
         setTimeout(mainloop,100)
     }
