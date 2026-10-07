@@ -263,8 +263,6 @@
     let x = 0;
     let y = 0;
     let updateNeeded = true;
-    let lastMouseMove = Date.now()
-    let mode = "MOUSE"
 
     canvas.addEventListener("mousemove", (e) => {
         var rect = canvas.getBoundingClientRect(), // abs. size of element
@@ -275,9 +273,6 @@
         y = (e.clientY - rect.top) * scaleY
 
         updateNeeded = true;
-
-        lastMouseMove = Date.now()
-        mode = "MOUSE"
     });
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
@@ -407,7 +402,7 @@
     }
 
     function mainloop(){
-        if ((!updateNeeded) && (lastMouseMove + 5*1000 > Date.now())) {setTimeout(mainloop,100); return} 
+        if (!updateNeeded) {setTimeout(mainloop,5); return} 
         updateNeeded = false;
 
         ctx.fillStyle = "#ffffff"
@@ -415,21 +410,15 @@
 
         drawCoords();
 
-        if(mode == "MOUSE"){
-            // drawMouseGrid("#0000ff", (x : Complex) => {return x});
-            // drawMouseGrid("#ff0000", f);
-
-            drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
-            drawColorGrid(f, ScreentoC(x,y));
-
-            // if (lastMouseMove + 5*1000 < Date.now()) mode = "ALL";
-        } else {
-            drawColorGridDashed((z : Complex) => {return z;}, Complex.ZERO)
-            drawColorGrid(f, Complex.ZERO)
-        }
-
         
-        setTimeout(mainloop,100)
+        // drawMouseGrid("#0000ff", (x : Complex) => {return x});
+        // drawMouseGrid("#ff0000", f);
+
+        drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
+        drawColorGrid(f, ScreentoC(x,y));
+
+             
+        setTimeout(mainloop,5)
     }
 
 
