@@ -1,10 +1,64 @@
-<canvas id="ComplexFunc" width="2000", height="1000" style='width:100%; height:47vw;'></canvas>
+<canvas id="ComplexFunc" width="2000", height="1000" style='width:100%' class="border-black border-2"></canvas>
+
 <div class="p-2">
-    <div class="flex align-middle">
-    <h2 class="text-2xl flex-none p-2">f(z) =</h2>
-    <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="e**z">
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-full border p-4 text-xl align-middle">
+        <legend class="fieldset-legend">Enter Function to display</legend>
+
+        <div class="flex align-middle">
+        <h2 class="text-2xl flex-none p-2">f(z) =</h2>
+        <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="e**z">
+        </div>
+        <p class="text-info text-xl p-2">Allowed symbols and Operators: z, (Complex) Numbers (e.g 13.37, 42i, 13 + 23i, ...), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, sinh, cosh, Re, Im, conj (= conjuate)), abs, |⋅|, arg</p>
+    </fieldset>
+
+    <div class="grid auto-rows-min grid-cols-2 gap-3">
+        <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle">
+            <legend class="fieldset-legend">Select object to display</legend>
+
+            <div>
+                <input type="radio" id="radioGrid" name="displayObj" value="Grid" class="radio" checked />
+                <label for="Grid" class="text-base-content label p-2">Grid</label>
+            </div>
+
+            <!--
+            <div>
+                <input type="radio" id="radioCircle" name="displayObj" class="radio" value="Circle"/>
+                <label for="Circle" class="text-base-content label p-2">Circle</label>
+            </div>
+
+            <div>
+                <input type="radio" id="radioLine" name="displayObj" class="radio" value="Line"/>
+                <label for="Line" class="text-base-content label p-2">Line</label>
+            </div>
+            -->
+        </fieldset>
+
+        <fieldset id="gridSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle">
+            <legend class="fieldset-legend">Settings</legend>
+
+            <div>
+                <label for="gridStepRange" class="text-base-content label p-2 tooltip" data-tip="Number of lines in each direction from mouse">Steps 🛈</label>
+                <div class="w-full max-w-xs grid grid-cols-10 align-middle gap-1">
+                    <input name = "gridStepRange" id = "gridStepRange" type="range" min="1" max="10" value="3" class="range h-full col-span-10" step="1" list="volumeTicks"/>
+                    <p class="text-xl text-center">1</p>
+                    <p class="text-xl text-center">2</p>
+                    <p class="text-xl text-center">3</p>
+                    <p class="text-xl text-center">4</p>
+                    <p class="text-xl text-center">5</p>
+                    <p class="text-xl text-center">6</p>
+                    <p class="text-xl text-center">7</p>
+                    <p class="text-xl text-center">8</p>
+                    <p class="text-xl text-center">9</p>
+                    <p class="text-xl text-center">10</p>
+                </div>
+            </div>
+
+            <div class="flex">
+                <label for="gridStepSize" class="text-base-content label p-2 tooltip" data-tip="Distance between lines (Accepts same input as f(z))">Step Size 🛈</label>
+                <input id ="gridStepSize" name ="gridStepSize" type="text" class="w-full text-xl p-1" placeholder="1">
+            </div>
+        </fieldset>
     </div>
-    <p class="text-info text-xl p-2">Allowed symbols and Operators: z, (Complex) Numbers (e.g 13.37, 42i, 13 + 23i, ...), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, sinh, cosh, Re, Im, conj (= conjuate)), abs, |⋅|, arg</p>
 </div>
 
 
@@ -17,6 +71,8 @@
     const ctx : CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     const input = document.getElementById("function-input") as HTMLInputElement;
+    const gridStepRange = document.getElementById("gridStepRange") as HTMLInputElement;
+    const gridStepSize = document.getElementById("gridStepSize") as HTMLInputElement;
 
 
     let f: Function = (z : Complex) => {
@@ -254,11 +310,76 @@
             return (z : Complex) => {return Complex(rf(z).exp())}
         }
 
+        if (s.startsWith("tanh")){
+            let rf = parseFunc(s.substring(4))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).tanh())}
+        }
+
+        if (s.startsWith("tan")){
+            let rf = parseFunc(s.substring(3))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).tan())}
+        }
+
+        if (s.startsWith("asinh")){
+            let rf = parseFunc(s.substring(5))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).asinh())}
+        }
+
+        if (s.startsWith("acosh")){
+            let rf = parseFunc(s.substring(5))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).acosh())}
+        }
+
+        if (s.startsWith("atanh")){
+            let rf = parseFunc(s.substring(5))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).atanh())}
+        }
+
+        if (s.startsWith("asin")){
+            let rf = parseFunc(s.substring(4))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).asin())}
+        }
+
+        if (s.startsWith("acos")){
+            let rf = parseFunc(s.substring(4))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).acos())}
+        }
+
+        if (s.startsWith("atan")){
+            let rf = parseFunc(s.substring(4))
+            
+            if (rf == null) return null;
+            
+            return (z : Complex) => {return Complex(rf(z).atan())}
+        }
+
         return null;
     }
 
-    const zoom = 50
-    const N = 3
+    let zoom = 50
+    let N = 3
+    let s :Complex = Complex(1)
 
     let x = 0;
     let y = 0;
@@ -274,6 +395,49 @@
 
         updateNeeded = true;
     });
+
+    canvas.addEventListener("mousedown", (e) => {
+        if (e.button != 0) return;
+
+        var rect = canvas.getBoundingClientRect(), // abs. size of element
+        scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for x
+        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
+
+        x = (e.clientX - rect.left) * scaleX
+        y = (e.clientY - rect.top) * scaleY
+
+        if (10 <= x && x <= 50){
+            if (10 <= y && y <= 90){
+                zoom *= 1 + +(y <= 50)
+                zoom /= 1 + +(y >= 50)
+            }
+        }
+
+        updateNeeded = true;
+    });
+
+    gridStepRange.addEventListener("input", (e) => {
+        if (!isNumeric(gridStepRange.value)){
+            console.log(gridStepRange.value)
+            gridStepRange.classList.add("text-error")
+        } else {
+            gridStepRange.classList.remove("text-error")
+            N = parseInt(gridStepRange.value)
+            updateNeeded = true;
+        }
+    })
+
+    gridStepSize.addEventListener("input", (e) => {
+        let cf = parseFunc(gridStepSize.value)
+        if (gridStepSize.value.includes("z") || (cf == null && gridStepSize.value != "")){
+            gridStepSize.classList.add("text-error")
+        } else {
+            gridStepSize.classList.remove("text-error")
+            if (cf != null) s = cf(Complex.ZERO);
+            else s = Complex.ONE;
+            updateNeeded = true;
+        }
+    })
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
     function invScreentf(x : number, y : number) : [number,number] {return [x-canvas.width/2, y-canvas.height/2]}
@@ -292,7 +456,7 @@
         let graw = z.re * gdir.re + z.im * gdir.im
         let braw = z.re * bdir.re + z.im * bdir.im
 
-        let C = 100;
+        let C = 300/N;
         rraw *= C, graw *= C, braw *= C
 
         //console.log("rgb(" + Math.min(255,Math.max(rraw,0)) +","+ Math.min(255,Math.max(graw,0)) + "," + Math.min(255,Math.max(braw,0)) +")")
@@ -300,7 +464,31 @@
         return "rgb(" + Math.min(255,Math.max(rraw,0)) +","+ Math.min(255,Math.max(graw,0)) + "," + Math.min(255,Math.max(braw,0)) +")"
     }
 
+    function drawScrollButtons(){
+        ctx.fillStyle = "#22222222"
+        ctx.beginPath()
+        ctx.rect(10,30,40,40)
+        ctx.ellipse(30,30,20,20,0,0,360)
+        ctx.ellipse(30,70,20,20,0,0,360)
+        ctx.fill()
 
+        // divider
+        ctx.fillStyle = "#00000022"
+        ctx.fillRect(10,49,40,2)
+        
+        // +
+        ctx.fillStyle = "#00000044"
+        ctx.beginPath()
+        ctx.rect(20,28,20,4)
+        ctx.rect(28,20,4,20)
+        ctx.fill()
+
+        // -
+        ctx.fillStyle = "#00000044"
+        ctx.beginPath()
+        ctx.rect(20,68,20,4)
+        ctx.fill()
+    }
 
     function  drawCoords(){
         ctx.lineWidth = 3
@@ -331,14 +519,14 @@
         let z = ScreentoC(x,y)
         for (let i = -N; i <= N; i++) {
             for (let j = -N; j < N; j += 0.01){
-                ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
-                ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
+                ctx.moveTo(...CtoScreen(f(z.add(s.mul(Complex(i, j))))));
+                ctx.lineTo(...CtoScreen(f(z.add(s.mul(Complex(i, j + 0.01))))));
             }
         }
         for (let i = -N; i <= N; i++) {
             for (let j = -N; j < N; j += 0.01){
-                ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
-                ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
+                ctx.moveTo(...CtoScreen(f(z.add(s.mul(Complex(j, i))))));
+                ctx.lineTo(...CtoScreen(f(z.add(s.mul(Complex(j + 0.01, i))))));
             }
         }
 
@@ -354,8 +542,8 @@
         for (let i = -M; i <= M; i++) {
             for (let j = -M; j < M; j += 0.01){
                 ctx.strokeStyle = CtoColor(Complex(i, j));
-                ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
-                ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
+                ctx.moveTo(...CtoScreen(f(z.add(s.mul(Complex(i, j))))));
+                ctx.lineTo(...CtoScreen(f(z.add(s.mul(Complex(i, j + 0.01))))));
                 ctx.stroke();
                 ctx.beginPath()
             }
@@ -363,8 +551,8 @@
         for (let i = -M; i <= M; i++) {
             for (let j = -M; j < M; j += 0.01){
                 ctx.strokeStyle = CtoColor(Complex(j, i));
-                ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
-                ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
+                ctx.moveTo(...CtoScreen(f(z.add(s.mul(Complex(j, i))))));
+                ctx.lineTo(...CtoScreen(f(z.add(s.mul(Complex(j + 0.01, i))))));
                 ctx.stroke();
                 ctx.beginPath()
             }
@@ -382,8 +570,8 @@
         for (let i = -M; i <= M; i++) {
             for (let j = -M; j < M; j += 0.04){
                 ctx.strokeStyle = CtoColor(Complex(i, j));
-                ctx.moveTo(...CtoScreen(f(z.add(Complex(i, j)))));
-                ctx.lineTo(...CtoScreen(f(z.add(Complex(i, j + 0.01)))));
+                ctx.moveTo(...CtoScreen(f(z.add(s.mul(Complex(i, j))))));
+                ctx.lineTo(...CtoScreen(f(z.add(s.mul(Complex(i, j + 0.01))))));
                 ctx.stroke();
                 ctx.beginPath()
             }
@@ -391,8 +579,8 @@
         for (let i = -M; i <= M; i++) {
             for (let j = -M; j < M; j += 0.04){
                 ctx.strokeStyle = CtoColor(Complex(j, i));
-                ctx.moveTo(...CtoScreen(f(z.add(Complex(j, i)))));
-                ctx.lineTo(...CtoScreen(f(z.add(Complex(j + 0.01, i)))));
+                ctx.moveTo(...CtoScreen(f(z.add(s.mul(Complex(j, i))))));
+                ctx.lineTo(...CtoScreen(f(z.add(s.mul(Complex(j + 0.01, i))))));
                 ctx.stroke();
                 ctx.beginPath()
             }
@@ -417,7 +605,8 @@
         drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
         drawColorGrid(f, ScreentoC(x,y));
 
-             
+        drawScrollButtons();
+
         setTimeout(mainloop,5)
     }
 
