@@ -73,15 +73,14 @@
         </fieldset>
 
         <fieldset id="lineSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
-            <legend class="fieldset-legend">Settings</legend>
-            
-            <h1 class="text-xl text-error">Not yet implemented</h1>
+            <legend class="fieldset-legend">How to</legend>
+            <p>Click to place  a point for it to be the first point of your line, your mouse serves as second point to define the line.</p>
         </fieldset>
 
         <fieldset id="dotSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
             <legend class="fieldset-legend">Settings</legend>
 
-            <h1 class="text-xl text-error">Not yet implemented</h1>
+            <h1 class="text-xl text-info">Nothing to set</h1>
         </fieldset>
     </div>
 </div>
@@ -424,6 +423,8 @@
 
     let r :Complex = Complex(1)
 
+    let z0 : Complex = Complex.ZERO
+
     let x = 0;
     let y = 0;
     let updateNeeded = true;
@@ -492,6 +493,28 @@
             else r = Complex.ONE;
             updateNeeded = true;
         }
+    })
+
+    canvas.addEventListener("mousedown", (e) => {
+        if (e.button != 0) return;
+        if (mode != "LINE") return;
+
+        var rect = canvas.getBoundingClientRect(), // abs. size of element
+        scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for x
+        scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for y
+
+        x = (e.clientX - rect.left) * scaleX
+        y = (e.clientY - rect.top) * scaleY
+
+        if (10 <= x && x <= 50){
+            if (10 <= y && y <= 90){
+                return
+            }
+        }
+
+        z0 = ScreentoC(x,y);
+
+        updateNeeded = true;
     })
 
     function modeSelectionListener (e: InputEvent) {
@@ -695,6 +718,53 @@
         }
     }
 
+    function drawLine(f : Function, z : Complex, w : Complex){
+        ctx.lineWidth = 3
+
+        let numPts = 20000
+
+        let step : Complex = z.sub(w)
+
+        step = step.div(step.abs()*zoom)
+
+        let K = Math.max(3*zoom/canvas.width, 3*zoom/canvas.height)/100
+
+        for (let i = -numPts; i <= numPts; i++) {
+            ctx.strokeStyle = "hsl("+180*(((2)/(1+Math.exp(K*i)))-1)+",100%,50%)";
+            ctx.beginPath()
+            ctx.moveTo(...CtoScreen(f(w.add(step.mul(i)))));
+            ctx.lineTo(...CtoScreen(f(w.add(step.mul(i+1)))));
+            ctx.stroke();
+        }
+    }
+
+    function drawLineDashed(f : Function, z : Complex, w : Complex){
+        ctx.lineWidth = 3
+
+        let numPts = 1000
+
+        let step : Complex = z.sub(w)
+
+        step = step.div(10*step.abs()*zoom/50)
+
+        let K = Math.max(15/canvas.width, 15/canvas.height)
+
+        for (let i = -numPts; i <= numPts; i++) {
+            ctx.strokeStyle = "hsl("+180*(((2)/(1+Math.exp(K*i)))-1)+",100%,50%)";
+            ctx.beginPath()
+            ctx.moveTo(...CtoScreen(f(w.add(step.mul(i)))));
+            ctx.lineTo(...CtoScreen(f(w.add(step.mul(i+0.5)))));
+            ctx.stroke();
+        }
+    }
+
+    function drawDot(z: Complex, c :string){
+        ctx.fillStyle = c
+        ctx.beginPath()
+        ctx.ellipse(...CtoScreen(z),5,5,0,0,360)
+        ctx.fill()
+    }
+
     function mainloop(){
         if (!updateNeeded) {setTimeout(mainloop,5); return} 
         updateNeeded = false;
@@ -704,19 +774,23 @@
 
         drawCoords();
 
+        let z = ScreentoC(x,y)
+
         if (mode == "GRID"){
             //drawMouseGrid("#0000ff", (x : Complex) => {return x});
             //drawMouseGrid("#ff0000", f);
 
-            drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
-            drawColorGrid(f, ScreentoC(x,y));
+            drawColorGridDashed((x : Complex) => {return x}, z);
+            drawColorGrid(f, z);
         } else if (mode == "CIRC"){
-            drawCircDashed((x : Complex) => {return x}, ScreentoC(x,y))
-            drawCirc(f, ScreentoC(x,y))
+            drawCircDashed((x : Complex) => {return x}, z)
+            drawCirc(f, z)
         } else if (mode == "LINE"){
-            //TODO
-        } else if (mode == "POINT"){
-            //TODO
+            drawLineDashed((x : Complex) => {return x}, z, z0)
+            drawLine(f, z, z0)
+        } else if (mode == "DOT"){
+            drawDot(z, "#0000ff")
+            drawDot(f(z), "#ff0000")
         }
 
         drawScrollButtons();
