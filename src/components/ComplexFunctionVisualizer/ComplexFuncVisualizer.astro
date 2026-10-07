@@ -20,9 +20,8 @@
                 <label for="Grid" class="text-base-content label p-2">Grid</label>
             </div>
 
-            <!--
             <div>
-                <input type="radio" id="radioCircle" name="displayObj" class="radio" value="Circle"/>
+                <input type="radio" id="radioCirc" name="displayObj" class="radio" value="Circle"/>
                 <label for="Circle" class="text-base-content label p-2">Circle</label>
             </div>
 
@@ -30,7 +29,11 @@
                 <input type="radio" id="radioLine" name="displayObj" class="radio" value="Line"/>
                 <label for="Line" class="text-base-content label p-2">Line</label>
             </div>
-            -->
+
+            <div>
+                <input type="radio" id="radioDot" name="displayObj" class="radio" value="Dot"/>
+                <label for="Dot" class="text-base-content label p-2">Dot</label>
+            </div>
         </fieldset>
 
         <fieldset id="gridSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle">
@@ -58,6 +61,28 @@
                 <input id ="gridStepSize" name ="gridStepSize" type="text" class="w-full text-xl p-1" placeholder="1">
             </div>
         </fieldset>
+
+        <fieldset id="circSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
+            <legend class="fieldset-legend">Settings</legend>
+
+            <div class="flex">
+                <label for="circRadius" class="text-base-content label p-2">
+                    Radius</label>
+                <input id ="circRadius" name ="circRadius" type="text" class="w-full text-xl p-1" placeholder="1">
+            </div>
+        </fieldset>
+
+        <fieldset id="lineSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
+            <legend class="fieldset-legend">Settings</legend>
+            
+            <h1 class="text-xl text-error">Not yet implemented</h1>
+        </fieldset>
+
+        <fieldset id="dotSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
+            <legend class="fieldset-legend">Settings</legend>
+
+            <h1 class="text-xl text-error">Not yet implemented</h1>
+        </fieldset>
     </div>
 </div>
 
@@ -71,9 +96,22 @@
     const ctx : CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     const input = document.getElementById("function-input") as HTMLInputElement;
+
+    const radioGrid = document.getElementById("radioGrid") as HTMLInputElement;
+    const radioCirc = document.getElementById("radioCirc") as HTMLInputElement;
+    const radioLine = document.getElementById("radioLine") as HTMLInputElement;
+    const radioDot = document.getElementById("radioDot") as HTMLInputElement;
+
+    const gridSettings = document.getElementById("gridSettings") as HTMLInputElement;
     const gridStepRange = document.getElementById("gridStepRange") as HTMLInputElement;
     const gridStepSize = document.getElementById("gridStepSize") as HTMLInputElement;
 
+    const circSettings = document.getElementById("circSettings") as HTMLInputElement;
+    const circRadius = document.getElementById("circRadius") as HTMLInputElement;
+
+    const lineSettings = document.getElementById("lineSettings") as HTMLInputElement;
+
+    const dotSettings = document.getElementById("dotSettings") as HTMLInputElement;
 
     let f: Function = (z : Complex) => {
         return Complex.E.pow(z);
@@ -378,8 +416,13 @@
     }
 
     let zoom = 50
+
+    let mode = "GRID"
+
     let N = 3
     let s :Complex = Complex(1)
+
+    let r :Complex = Complex(1)
 
     let x = 0;
     let y = 0;
@@ -438,6 +481,35 @@
             updateNeeded = true;
         }
     })
+
+    circRadius.addEventListener("input", (e) => {
+        let cf = parseFunc(circRadius.value)
+        if (circRadius.value.includes("z") || (cf == null && circRadius.value != "")){
+            circRadius.classList.add("text-error")
+        } else {
+            circRadius.classList.remove("text-error")
+            if (cf != null) r = cf(Complex.ZERO);
+            else r = Complex.ONE;
+            updateNeeded = true;
+        }
+    })
+
+    function modeSelectionListener (e: InputEvent) {
+        if (radioGrid.checked) mode = "GRID";
+        else if (radioCirc.checked) mode = "CIRC";
+        else if (radioLine.checked) mode = "LINE";
+        else if (radioDot.checked) mode = "DOT";
+
+        gridSettings.hidden = mode != "GRID";
+        circSettings.hidden = mode != "CIRC";
+        lineSettings.hidden = mode != "LINE";
+        dotSettings.hidden = mode != "DOT";
+    }
+
+    radioGrid.addEventListener("input", modeSelectionListener)
+    radioCirc.addEventListener("input", modeSelectionListener)
+    radioLine.addEventListener("input", modeSelectionListener)
+    radioDot.addEventListener("input", modeSelectionListener)
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
     function invScreentf(x : number, y : number) : [number,number] {return [x-canvas.width/2, y-canvas.height/2]}
@@ -589,6 +661,40 @@
         ctx.stroke();
     }
 
+    function drawCirc(f : Function, z : Complex){
+        ctx.lineWidth = 3
+
+        let numPts = 10000
+
+        for (let i = 0; i < numPts; i++) {
+            let alpha = Complex(0, 2*Math.PI*i/numPts)
+            let beta = Complex(0, 2*Math.PI*(i+1)/numPts)
+
+            ctx.strokeStyle = "hsl("+(360*i/numPts)+",100%,50%)";
+            ctx.beginPath()
+            ctx.moveTo(...CtoScreen(f(z.add(r.mul(alpha.exp())))));
+            ctx.lineTo(...CtoScreen(f(z.add(r.mul(beta.exp())))));
+            ctx.stroke();
+        }
+    }
+
+    function drawCircDashed(f : Function, z : Complex){
+        ctx.lineWidth = 3
+
+        let numPts = 45
+
+        for (let i = 0; i < numPts; i++) {
+            let alpha = Complex(0, 2*Math.PI*i/numPts)
+            let beta = Complex(0, 2*Math.PI*(i+0.5)/numPts)
+
+            ctx.strokeStyle = "hsl("+(360*i/numPts)+",100%,50%)";
+            ctx.beginPath()
+            ctx.moveTo(...CtoScreen(f(z.add(r.mul(alpha.exp())))));
+            ctx.lineTo(...CtoScreen(f(z.add(r.mul(beta.exp())))));
+            ctx.stroke();
+        }
+    }
+
     function mainloop(){
         if (!updateNeeded) {setTimeout(mainloop,5); return} 
         updateNeeded = false;
@@ -598,12 +704,20 @@
 
         drawCoords();
 
-        
-        // drawMouseGrid("#0000ff", (x : Complex) => {return x});
-        // drawMouseGrid("#ff0000", f);
+        if (mode == "GRID"){
+            //drawMouseGrid("#0000ff", (x : Complex) => {return x});
+            //drawMouseGrid("#ff0000", f);
 
-        drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
-        drawColorGrid(f, ScreentoC(x,y));
+            drawColorGridDashed((x : Complex) => {return x}, ScreentoC(x,y));
+            drawColorGrid(f, ScreentoC(x,y));
+        } else if (mode == "CIRC"){
+            drawCircDashed((x : Complex) => {return x}, ScreentoC(x,y))
+            drawCirc(f, ScreentoC(x,y))
+        } else if (mode == "LINE"){
+            //TODO
+        } else if (mode == "POINT"){
+            //TODO
+        }
 
         drawScrollButtons();
 
