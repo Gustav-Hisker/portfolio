@@ -1,18 +1,18 @@
 <canvas id="ComplexFunc" width="2000", height="1000" style='width:100%' class="border-black border-2"></canvas>
 
-<div class="p-2">
-    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-full border p-4 text-xl align-middle">
+<div class="p-0 md:p-2">
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-full border p-1 md:p-4 md:text-xl align-middle">
         <legend class="fieldset-legend">Enter Function to display</legend>
 
         <div class="flex align-middle">
-        <h2 class="text-2xl flex-none p-2">f(z) =</h2>
-        <input class="w-full text-2xl p-2" id="function-input" type="text" name="function" placeholder="e**z">
+        <h2 class="text-l md:text-2xl flex-none p-0.5 md:p-2">f(z) =</h2>
+        <input class="w-full text-l md:text-2xl p-0.5 md:p-2" id="function-input" type="text" name="function" placeholder="e**z">
         </div>
-        <p class="text-info text-xl p-2">Allowed symbols and Operators: z, (Complex) Numbers (e.g 13.37, 42i, 13 + 23i, ...), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, sinh, cosh, Re, Im, conj (= conjuate)), abs, |⋅|, arg</p>
+        <p class="text-info text-xs md:text-xl p-0.5 md:p-2">Allowed symbols and Operators: z, (Complex) Numbers (e.g 13.37, 42i, 13 + 23i, ...), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, sinh, cosh, Re, Im, conj (= conjuate)), abs, |⋅|, arg</p>
     </fieldset>
 
     <div class="grid auto-rows-min landscape:grid-cols-2 portrait:grid-cols-1 gap-3">
-        <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle">
+        <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle">
             <legend class="fieldset-legend">Select object to display</legend>
 
             <div>
@@ -36,11 +36,11 @@
             </div>
         </fieldset>
 
-        <fieldset id="gridSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle">
+        <fieldset id="gridSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle">
             <legend class="fieldset-legend">Settings</legend>
 
             <div>
-                <label for="gridStepRange" class="text-base-content label p-2 tooltip" data-tip="Number of lines in each direction from mouse">Steps 🛈</label>
+                <label for="gridStepRange" class="text-base-content label p-0.5 md:p-2 tooltip" data-tip="Number of lines in each direction from mouse">Steps 🛈:</label>
                 <div class="w-full max-w-xs grid grid-cols-10 align-middle gap-1">
                     <input name = "gridStepRange" id = "gridStepRange" type="range" min="1" max="10" value="3" class="range h-full col-span-10" step="1" list="volumeTicks"/>
                     <p class="text-xl text-center">1</p>
@@ -57,30 +57,30 @@
             </div>
 
             <div class="flex">
-                <label for="gridStepSize" class="text-base-content label p-2 tooltip" data-tip="Distance between lines (Accepts same input as f(z))">Step Size 🛈</label>
-                <input id ="gridStepSize" name ="gridStepSize" type="text" class="w-full text-xl p-1" placeholder="1">
+                <label for="gridStepSize" class="text-base-content label p-0.5 md:p-2 tooltip pr-2" data-tip="Distance between lines (Accepts same input as f(z))">Step Size 🛈:</label>
+                <input id ="gridStepSize" name ="gridStepSize" type="text" class="w-full md:text-xl p-1" placeholder="1">
             </div>
         </fieldset>
 
-        <fieldset id="circSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
+        <fieldset id="circSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle" hidden>
             <legend class="fieldset-legend">Settings</legend>
 
             <div class="flex">
-                <label for="circRadius" class="text-base-content label p-2">
-                    Radius</label>
-                <input id ="circRadius" name ="circRadius" type="text" class="w-full text-xl p-1" placeholder="1">
+                <label for="circRadius" class="text-base-content label p-0.5 md:p-2 pr-2">
+                    Radius:</label>
+                <input id ="circRadius" name ="circRadius" type="text" class="w-full md:text-xl p-1" placeholder="1">
             </div>
         </fieldset>
 
-        <fieldset id="lineSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
+        <fieldset id="lineSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle" hidden>
             <legend class="fieldset-legend">How to</legend>
             <p>Click to place  a point for it to be the first point of your line, your mouse serves as second point to define the line.</p>
         </fieldset>
 
-        <fieldset id="dotSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-3 text-xl align-middle" hidden>
+        <fieldset id="dotSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle" hidden>
             <legend class="fieldset-legend">Settings</legend>
 
-            <h1 class="text-xl text-info">Nothing to set</h1>
+            <h1 class="md:text-xl text-info">Nothing to set</h1>
         </fieldset>
     </div>
 </div>
