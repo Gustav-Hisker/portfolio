@@ -151,7 +151,7 @@
             updateNeeded = true;
         }
 
-        shareURL.innerText="https://gustav-hisker.ch/complexFunctionVisualizer?func=" + encodeURI(input.value)
+        shareURL.innerText="https://gustav-hisker.ch/complexFunctionVisualizer?func=" + encodeURIComponent(input.value)
     }
     input.addEventListener("input", (e) => {funcListener()})
     window.addEventListener("load", (e) => {
