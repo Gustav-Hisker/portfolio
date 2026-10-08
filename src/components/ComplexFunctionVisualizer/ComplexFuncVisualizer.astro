@@ -89,6 +89,11 @@
                 <input id ="showIDiff" name ="showIDiff" type="checkbox" class="checkbox align-middle checkbox-md">
                     Show Differential in $i \Bbb R$ direction
             </label>
+            
+            <label for="showPartialDiff" class="text-base-content label p-0.5 md:p-2 pr-2 align-middle">
+                <input id ="showPartialDiff" name ="showPartialDiff" type="checkbox" class="checkbox align-middle checkbox-md">
+                    Show partial derivetives (ux, uy, vx, vy (f = u + iv))
+            </label>
         </fieldset>
     </div>
 </div>
@@ -121,6 +126,7 @@
     const dotSettings = document.getElementById("dotSettings") as HTMLFieldSetElement;
     const checkbowRDiff = document.getElementById("showRDiff") as HTMLInputElement;
     const checkbowIDiff = document.getElementById("showIDiff") as HTMLInputElement;
+    const showPartialDiff = document.getElementById("showPartialDiff") as HTMLInputElement;
 
     let f: Function = (z : Complex) => {
         return Complex.E.pow(z);
@@ -450,6 +456,7 @@
 
     let doRDiff = false
     let doIDiff = false
+    let doCR = false
 
     let x = 0;
     let y = 0;
@@ -552,10 +559,12 @@
     function checkbowDiffListener(){
         doRDiff = checkbowRDiff.checked
         doIDiff = checkbowIDiff.checked
+        doCR = showPartialDiff.checked
         updateNeeded = true
     }
     checkbowRDiff.addEventListener("input", checkbowDiffListener)
     checkbowIDiff.addEventListener("input", checkbowDiffListener)
+    showPartialDiff.addEventListener("input", checkbowDiffListener)
     window.addEventListener("load", checkbowDiffListener)
 
     function modeSelectionListener (e: Event) {
@@ -581,8 +590,8 @@
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
     function invScreentf(x : number, y : number) : [number,number] {return [x-canvas.width/2, y-canvas.height/2]}
 
-    function CtoScreen(z : Complex) : [number,number]{return [z.re*zoom+canvas.width/2, z.im*zoom+canvas.height/2]}
-    function ScreentoC(x : number, y : number){ return Complex(x-canvas.width/2, (y-canvas.height/2)).div(zoom)}
+    function CtoScreen(z : Complex) : [number,number]{return [z.re*zoom+canvas.width/2, -z.im*zoom+canvas.height/2]}
+    function ScreentoC(x : number, y : number){ return Complex(x-canvas.width/2, -(y-canvas.height/2)).div(zoom)}
 
 
     function CtoColor(z : Complex) : string{
@@ -818,10 +827,10 @@
         do {
             diffs.push(f(z.add(v.mul(delta))).sub(f(z)).div(delta))
         } while (diffs.length < 4 ||
-                1.1 < diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
-                0.9 > diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
-                1.1 < diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs() ||
-                0.9 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs())
+                1.001 < diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
+                0.999 > diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
+                1.001 < diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs() ||
+                0.999 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs())
         return diffs[diffs.length-1]
     }
 
@@ -839,6 +848,66 @@
 
         ctx.moveTo(...CtoScreen(f(z).add(d.mul(Complex(0.9,-0.1)))));
         ctx.lineTo(...CtoScreen(f(z).add(d)));
+
+        ctx.stroke();
+    }
+
+    function drawDashed(z1:Complex, z2 :Complex, c : string){
+        let v : Complex = z1.sub(z2)
+        v = v.mul(10/(v.abs()*zoom))
+
+        let numpts = z1.sub(z2).abs()/v.abs()
+        
+        ctx.strokeStyle = c
+        ctx.beginPath()
+
+        for (let i = 0; i <= numpts; i++) {
+            ctx.moveTo(...CtoScreen(z2.add(v.mul(i))))
+            ctx.lineTo(...CtoScreen(z2.add(v.mul(i+0.5))))
+        }
+
+        ctx.stroke();
+    }
+
+    function drawCR(f: Function, z: Complex, c :string){
+        let rd = numericDiff(f,z,Complex.ONE)
+        let id = numericDiff(f,z,Complex.I)
+
+        let ux = rd.re
+        let vx = rd.im
+        let uy = id.re
+        let vy = id.im
+
+        ctx.strokeStyle = c
+        ctx.beginPath()
+
+        drawDashed(f(z), f(z).add(ux), c)
+        ctx.font = "20px ubuntu";
+        ctx.fillStyle = c
+        ctx.textAlign = "center"
+        ctx.textBaseline = vx >= 0 ? "hanging" : "alphabetic"
+        ctx.fillText(ux < 0 ? "-ux" : "ux", ...CtoScreen(f(z).add(ux/2).add(Complex(0,-5/zoom * Math.sign(vx)))));
+
+        drawDashed(f(z).add(ux), f(z).add(ux).add(Complex(0,vx)), c)
+        ctx.font = "20px ubuntu";
+        ctx.fillStyle = c
+        ctx.textAlign = ux >= 0 ? "left" : "right"
+        ctx.textBaseline = "middle"
+        ctx.fillText(vx < 0 ? "-vx" : "vx", ...CtoScreen(f(z).add(ux).add(Complex(0,vx/2).add(5/zoom * Math.sign(ux)))));
+
+        drawDashed(f(z), f(z).add(Complex(0,vy)), c)
+        ctx.font = "20px ubuntu";
+        ctx.fillStyle = c
+        ctx.textAlign = uy <= 0 ? "left" : "right"
+        ctx.textBaseline = "middle"
+        ctx.fillText(vy < 0 ? "-vy" :"vy", ...CtoScreen(f(z).add(Complex(0,vy/2).add(-5/zoom * Math.sign(uy)))));
+
+        drawDashed(f(z).add(Complex(0,vy)), f(z).add(Complex(0,vy)).add(uy), c)
+        ctx.font = "20px ubuntu";
+        ctx.fillStyle = c
+        ctx.textAlign = "center"
+        ctx.textBaseline = vy <= 0 ? "hanging" : "alphabetic"
+        ctx.fillText(uy < 0? "-uy" : "uy", ...CtoScreen(f(z).add(Complex(0,vy)).add(uy/2).add(Complex(0,5/zoom * Math.sign(vy)))));
 
         ctx.stroke();
     }
@@ -871,8 +940,12 @@
             if (doIDiff) drawDiff((x : Complex) => {return x},z,"#00ffff", Complex.I)
             if (doRDiff) drawDiff(f,z,"#00ff00", Complex.ONE)
             if (doIDiff) drawDiff(f,z,"#00ffff", Complex.I)
+            if (doCR) drawCR(f, z, "#000099")
+
             drawDot(z, "#0000ff")
             drawDot(f(z), "#ff0000")
+
+            //drawDashed(z, f(z), "#ffff00")
         }
 
         drawScrollButtons();
