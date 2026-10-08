@@ -780,7 +780,7 @@
 
         step = step.div(step.abs()*zoom)
 
-        let K = Math.max(3*zoom/canvas.width, 3*zoom/canvas.height)/100
+        let K = Math.max(3*zoom/canvas.width, 3*zoom/canvas.height)/50
 
         for (let i = -numPts; i <= numPts; i++) {
             ctx.strokeStyle = "hsl("+180*(((2)/(1+Math.exp(K*i)))-1)+",100%,50%)";
@@ -832,7 +832,7 @@
                 1.001 < diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
                 0.999 > diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
                 1.001 < diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs() ||
-                0.999 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs()) && i++ < 100)
+                0.999 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs()) && i++ < 200)
         return diffs[diffs.length-1]
     }
 
@@ -859,6 +859,8 @@
         v = v.mul(10/(v.abs()*zoom))
 
         let numpts = z1.sub(z2).abs()/v.abs()
+
+        if (numpts >= 1000) return;
         
         ctx.strokeStyle = c
         ctx.beginPath()
