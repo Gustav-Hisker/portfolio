@@ -824,13 +824,15 @@
 
         let delta = 0.000001
         let diffs : Complex[] = [f(z.add(v.mul(delta))).sub(f(z)).div(delta)]
+        let i = 0
         do {
+            delta /= 2
             diffs.push(f(z.add(v.mul(delta))).sub(f(z)).div(delta))
-        } while (diffs.length < 4 ||
+        } while ((diffs.length < 4 ||
                 1.001 < diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
                 0.999 > diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
                 1.001 < diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs() ||
-                0.999 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs())
+                0.999 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs()) && i++ < 100)
         return diffs[diffs.length-1]
     }
 
