@@ -1,4 +1,4 @@
-<canvas id="ComplexFunc" width="2000", height="1000" style='width:100%' class="border-black border-2"></canvas>
+<canvas id="ComplexFunc" width="2000", height="1000" style='width:100%' class="border-black border-2 text-center"></canvas>
 
 <div class="p-0 md:p-2">
     <fieldset class="fieldset bg-base-200 border-base-300 rounded-box w-full border p-1 md:p-4 md:text-xl align-middle">
@@ -955,6 +955,27 @@
         setTimeout(mainloop,5)
     }
 
-
     mainloop();
+
+    window.addEventListener("resize", (e) => {
+        if (window.innerWidth < window.innerHeight){
+            canvas.height = 2000;
+            canvas.width = 1000;
+        } else {
+            canvas.height = 1000;
+            canvas.width = 2000;
+        }
+        updateNeeded = true
+    })
+
+    window.addEventListener("load", (e) => {
+        if (window.innerWidth < window.innerHeight){
+            canvas.height = 2000;
+            canvas.width = 1000;
+        } else {
+            canvas.height = 1000;
+            canvas.width = 2000;
+        }
+        updateNeeded = true
+    })
 </script>
