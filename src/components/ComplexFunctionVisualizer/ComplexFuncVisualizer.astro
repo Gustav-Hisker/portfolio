@@ -95,9 +95,15 @@
                     Show partial derivetives (ux, uy, vx, vy (f = u + iv))
             </label>
         </fieldset>
+
+        <fieldset id="shareFunc" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle">
+            <legend class="fieldset-legend">Link to share Function</legend>
+
+            <p id="shareURL" class="info text-info text-base md:text-lg">https://gustav-hisker.ch/complexFunctionVisualizer?func=z</p>
+            <button class="btn btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('shareURL').innerText);">Copy Link</button>
+        </fieldset>
     </div>
 </div>
-
 
 <script>
     import Complex from 'complex.js';
@@ -128,6 +134,8 @@
     const checkbowIDiff = document.getElementById("showIDiff") as HTMLInputElement;
     const showPartialDiff = document.getElementById("showPartialDiff") as HTMLInputElement;
 
+    const shareURL = document.getElementById("shareURL") as HTMLParagraphElement;
+
     let f: Function = (z : Complex) => {
         return Complex.E.pow(z);
     }
@@ -142,9 +150,17 @@
             else f = (z : Complex) => {return Complex.E.pow(z);}
             updateNeeded = true;
         }
+
+        shareURL.innerText="https://gustav-hisker.ch/complexFunctionVisualizer?func=" + encodeURI(input.value)
     }
     input.addEventListener("input", (e) => {funcListener()})
-    window.addEventListener("load", (e) => {console.log("loaded");funcListener()})
+    window.addEventListener("load", (e) => {
+        let params = new URLSearchParams(document.location.search);
+        if (params.has("func")){
+            input.value = params.get("func") as string
+        }
+        funcListener()
+    })
 
     function validBracketing(s:  string) : boolean{
         let bl = 0
