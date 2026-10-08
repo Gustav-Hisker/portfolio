@@ -80,7 +80,15 @@
         <fieldset id="dotSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle" hidden>
             <legend class="fieldset-legend">Settings</legend>
 
-            <h1 class="md:text-xl text-info">Nothing to set</h1>
+            <label for="showRDiff" class="text-base-content label p-0.5 md:p-2 pr-2 align-middle">
+                <input id ="showRDiff" name ="showRDiff" type="checkbox" class="checkbox align-middle checkbox-md">
+                    Show Differential in $\Bbb R$ direction
+            </label>
+            
+            <label for="showIDiff" class="text-base-content label p-0.5 md:p-2 pr-2 align-middle">
+                <input id ="showIDiff" name ="showIDiff" type="checkbox" class="checkbox align-middle checkbox-md">
+                    Show Differential in $i \Bbb R$ direction
+            </label>
         </fieldset>
     </div>
 </div>
@@ -101,22 +109,24 @@
     const radioLine = document.getElementById("radioLine") as HTMLInputElement;
     const radioDot = document.getElementById("radioDot") as HTMLInputElement;
 
-    const gridSettings = document.getElementById("gridSettings") as HTMLInputElement;
+    const gridSettings = document.getElementById("gridSettings") as HTMLFieldSetElement;
     const gridStepRange = document.getElementById("gridStepRange") as HTMLInputElement;
     const gridStepSize = document.getElementById("gridStepSize") as HTMLInputElement;
 
-    const circSettings = document.getElementById("circSettings") as HTMLInputElement;
+    const circSettings = document.getElementById("circSettings") as HTMLFieldSetElement;
     const circRadius = document.getElementById("circRadius") as HTMLInputElement;
 
-    const lineSettings = document.getElementById("lineSettings") as HTMLInputElement;
+    const lineSettings = document.getElementById("lineSettings") as HTMLFieldSetElement;
 
-    const dotSettings = document.getElementById("dotSettings") as HTMLInputElement;
+    const dotSettings = document.getElementById("dotSettings") as HTMLFieldSetElement;
+    const checkbowRDiff = document.getElementById("showRDiff") as HTMLInputElement;
+    const checkbowIDiff = document.getElementById("showIDiff") as HTMLInputElement;
 
     let f: Function = (z : Complex) => {
         return Complex.E.pow(z);
     }
 
-    input.addEventListener("input", (e) => {
+    function funcListener() {
         let cf = parseFunc(input.value)
         if (cf == null && input.value != ""){
             input.classList.add("text-error")
@@ -126,7 +136,9 @@
             else f = (z : Complex) => {return Complex.E.pow(z);}
             updateNeeded = true;
         }
-    })
+    }
+    input.addEventListener("input", (e) => {funcListener()})
+    window.addEventListener("load", (e) => {console.log("loaded");funcListener()})
 
     function validBracketing(s:  string) : boolean{
         let bl = 0
@@ -436,6 +448,9 @@
 
     let z0 : Complex = Complex.ZERO
 
+    let doRDiff = false
+    let doIDiff = false
+
     let x = 0;
     let y = 0;
     let updateNeeded = true;
@@ -471,7 +486,7 @@
         updateNeeded = true;
     });
 
-    gridStepRange.addEventListener("input", (e) => {
+    function gridStepRangeListener(){
         if (!isNumeric(gridStepRange.value)){
             console.log(gridStepRange.value)
             gridStepRange.classList.add("text-error")
@@ -480,9 +495,11 @@
             N = parseInt(gridStepRange.value)
             updateNeeded = true;
         }
-    })
+    }
+    gridStepRange.addEventListener("input", (e) => {gridStepRangeListener()})
+    window.addEventListener("load", (e) => {gridStepRangeListener()})
 
-    gridStepSize.addEventListener("input", (e) => {
+    function gridStepSizeListener(){
         let cf = parseFunc(gridStepSize.value)
         if (gridStepSize.value.includes("z") || (cf == null && gridStepSize.value != "")){
             gridStepSize.classList.add("text-error")
@@ -492,9 +509,11 @@
             else s = Complex.ONE;
             updateNeeded = true;
         }
-    })
+    }
+    gridStepSize.addEventListener("input", (e) => {gridStepSizeListener()})
+    window.addEventListener("load", (e) => {gridStepSizeListener()})
 
-    circRadius.addEventListener("input", (e) => {
+    function circRadiusListener() {
         let cf = parseFunc(circRadius.value)
         if (circRadius.value.includes("z") || (cf == null && circRadius.value != "")){
             circRadius.classList.add("text-error")
@@ -504,7 +523,9 @@
             else r = Complex.ONE;
             updateNeeded = true;
         }
-    })
+    }
+    circRadius.addEventListener("input", (e) => {circRadiusListener()})
+    window.addEventListener("load", (e) => {circRadiusListener()})
 
     canvas.addEventListener("mousedown", (e) => {
         if (e.button != 0) return;
@@ -528,7 +549,16 @@
         updateNeeded = true;
     })
 
-    function modeSelectionListener (e: InputEvent) {
+    function checkbowDiffListener(){
+        doRDiff = checkbowRDiff.checked
+        doIDiff = checkbowIDiff.checked
+        updateNeeded = true
+    }
+    checkbowRDiff.addEventListener("input", checkbowDiffListener)
+    checkbowIDiff.addEventListener("input", checkbowDiffListener)
+    window.addEventListener("load", checkbowDiffListener)
+
+    function modeSelectionListener (e: Event) {
         if (radioGrid.checked) mode = "GRID";
         else if (radioCirc.checked) mode = "CIRC";
         else if (radioLine.checked) mode = "LINE";
@@ -538,12 +568,15 @@
         circSettings.hidden = mode != "CIRC";
         lineSettings.hidden = mode != "LINE";
         dotSettings.hidden = mode != "DOT";
+
+        updateNeeded = true;
     }
 
     radioGrid.addEventListener("input", modeSelectionListener)
     radioCirc.addEventListener("input", modeSelectionListener)
     radioLine.addEventListener("input", modeSelectionListener)
     radioDot.addEventListener("input", modeSelectionListener)
+    window.addEventListener("load", modeSelectionListener)
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
     function invScreentf(x : number, y : number) : [number,number] {return [x-canvas.width/2, y-canvas.height/2]}
@@ -776,6 +809,40 @@
         ctx.fill()
     }
 
+    function numericDiff(f : Function, z: Complex, v: Complex){
+        v = v.div(v.abs())
+
+
+        let delta = 0.000001
+        let diffs : Complex[] = [f(z.add(v.mul(delta))).sub(f(z)).div(delta)]
+        do {
+            diffs.push(f(z.add(v.mul(delta))).sub(f(z)).div(delta))
+        } while (diffs.length < 4 ||
+                1.1 < diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
+                0.9 > diffs[diffs.length - 1].abs()/diffs[diffs.length - 2].abs() ||
+                1.1 < diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs() ||
+                0.9 > diffs[diffs.length - 2].abs()/diffs[diffs.length - 3].abs())
+        return diffs[diffs.length-1]
+    }
+
+    function drawDiff(f: Function, z: Complex, c :string, v: Complex){
+        let d = numericDiff(f,z,v)
+
+        ctx.strokeStyle = c
+        ctx.beginPath()
+
+        ctx.moveTo(...CtoScreen(f(z)));
+        ctx.lineTo(...CtoScreen(f(z).add(d)));
+
+        ctx.moveTo(...CtoScreen(f(z).add(d.mul(Complex(0.9,0.1)))));
+        ctx.lineTo(...CtoScreen(f(z).add(d)));
+
+        ctx.moveTo(...CtoScreen(f(z).add(d.mul(Complex(0.9,-0.1)))));
+        ctx.lineTo(...CtoScreen(f(z).add(d)));
+
+        ctx.stroke();
+    }
+
     function mainloop(){
         if (!updateNeeded) {setTimeout(mainloop,5); return} 
         updateNeeded = false;
@@ -800,6 +867,10 @@
             drawLineDashed((x : Complex) => {return x}, z, z0)
             drawLine(f, z, z0)
         } else if (mode == "DOT"){
+            if (doRDiff) drawDiff((x : Complex) => {return x},z,"#00ff00", Complex.ONE)
+            if (doIDiff) drawDiff((x : Complex) => {return x},z,"#00ffff", Complex.I)
+            if (doRDiff) drawDiff(f,z,"#00ff00", Complex.ONE)
+            if (doIDiff) drawDiff(f,z,"#00ffff", Complex.I)
             drawDot(z, "#0000ff")
             drawDot(f(z), "#ff0000")
         }
