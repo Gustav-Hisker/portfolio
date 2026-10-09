@@ -102,6 +102,28 @@
             <p id="shareURL" class="info text-info text-base md:text-lg">https://gustav-hisker.ch/complexFunctionVisualizer?func=z</p>
             <button class="btn btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('shareURL').innerText);">Copy Link</button>
         </fieldset>
+
+        <fieldset id="exampleFunctions" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle">
+            <legend class="fieldset-legend">Example Functions</legend>
+            <p class="text-info text-base">Click on the functions to view them</p>
+
+            <h1 class="text-l md:text-xl">Holomorph</h1>
+            <a href="?func=z**2" class="flex gap-4">
+                <b>$f(z) = z^2$</b><p>A classic one</p>
+            </a>
+            <a href="?func=e**z" class="flex gap-4">
+                <b>$f(z) = \exp(z) = e^z$</b><p>Just lovely</p>
+            </a>
+
+            <h1 class="text-l md:text-xl">Not Holomorph</h1>
+            <a href="?func=z%20%2B%201%2Fconj(z)" class="flex gap-4">
+                <b>$f(z) = z + \frac1{'{'}\bar z{'}'}$</b><p>Almost the identity but it dodges $D_2(0)$</p>
+            </a>
+            <a href="?func=z**5%2F%7Cz%7C**4" class="flex gap-4">
+                <b>$f(z) = \frac{'{'}z^5{'}{'}|z|^4{'}'} = |z|\cdot e^{'{'}5i \cdot \arg(z){'}'}$</b><p>Rotating fast</p>
+            </a>
+            
+        </fieldset>
     </div>
 </div>
 
