@@ -159,7 +159,7 @@
     const shareURL = document.getElementById("shareURL") as HTMLParagraphElement;
 
     let f: Function = (z : Complex) => {
-        return Complex.E.pow(z);
+        return z.exp();
     }
 
     function funcListener() {
@@ -169,7 +169,7 @@
         } else {
             input.classList.remove("text-error")
             if (cf != null) f = cf;
-            else f = (z : Complex) => {return Complex.E.pow(z);}
+            else f = (z : Complex) => {return z.exp();}
             updateNeeded = true;
         }
 
@@ -1019,4 +1019,23 @@
         }
         updateNeeded = true
     })
+
+    const exampleFunctions = document.getElementById("exampleFunctions") as HTMLFieldSetElement;
+
+    exampleFunctions.childNodes.forEach(child => {
+        if (child instanceof HTMLAnchorElement){
+            child.onclick = () => {
+                let params = (URL.parse(child.href) as URL).searchParams;
+                console.log(params)
+                if (params.has("func")){
+                    input.value = params.get("func") as string
+                }
+                funcListener()
+
+                canvas.scrollIntoView({behavior : "smooth"})
+
+                return false;
+            };
+        }
+    });
 </script>
