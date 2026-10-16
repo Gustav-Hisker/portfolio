@@ -5,7 +5,7 @@
         <legend class="fieldset-legend">Enter Function to display</legend>
 
         <div class="flex align-middle">
-        <h2 class="text-l md:text-2xl flex-none p-0.5 md:p-2">f(z) =</h2>
+        <h2 class="text-l md:text-2xl flex-none p-0.5 md:p-2">$f(z) =$</h2>
         <input class="w-full text-l md:text-2xl p-0.5 md:p-2" id="function-input" type="text" name="function" placeholder="e**z">
         </div>
         <p class="text-info text-xs md:text-xl p-0.5 md:p-2">Allowed symbols and Operators: z, (Complex) Numbers (e.g 13.37, 42i, 13 + 23i, ...), +, -, *, /, ** (= ^), i, e, t(=τ), p(=π), sin, cos, sinh, cosh, Re, Im, conj (= conjuate)), abs, |⋅|, arg</p>
@@ -16,23 +16,28 @@
             <legend class="fieldset-legend">Select object to display</legend>
 
             <div>
-                <input type="radio" id="radioGrid" name="displayObj" value="Grid" class="radio" checked />
-                <label for="Grid" class="text-base-content label p-2">Grid</label>
+                <input type="radio" id="radioGrid" name="radio" value="Grid" class="radio" checked />
+                <label for="radioGrid" class="text-base-content label p-2">Grid</label>
             </div>
 
             <div>
-                <input type="radio" id="radioCirc" name="displayObj" class="radio" value="Circle"/>
-                <label for="Circle" class="text-base-content label p-2">Circle</label>
+                <input type="radio" id="radioCirc" name="radio" class="radio" value="Circle"/>
+                <label for="radioCirc" class="text-base-content label p-2">Circle</label>
             </div>
 
             <div>
-                <input type="radio" id="radioLine" name="displayObj" class="radio" value="Line"/>
-                <label for="Line" class="text-base-content label p-2">Line</label>
+                <input type="radio" id="radioLine" name="radio" class="radio" value="Line"/>
+                <label for="radioLine" class="text-base-content label p-2">Line</label>
             </div>
 
             <div>
-                <input type="radio" id="radioDot" name="displayObj" class="radio" value="Dot"/>
-                <label for="Dot" class="text-base-content label p-2">Dot</label>
+                <input type="radio" id="radioDot" name="radio" class="radio" value="Dot"/>
+                <label for="radioDot" class="text-base-content label p-2">Dot</label>
+            </div>
+
+            <div>
+                <input type="radio" id="radioPath" name="radio" class="radio" value="Path"/>
+                <label for="radioPath" class="text-base-content label p-2">Parametrized Path</label>
             </div>
         </fieldset>
 
@@ -96,6 +101,28 @@
             </label>
         </fieldset>
 
+        <fieldset id="pathSettings" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle" hidden>
+            <legend class="fieldset-legend">Settings</legend>
+
+            <div class="flex">
+                <label for="pathFunction" class="text-base-content label p-0.5 md:p-2 pr-2">
+                    $\gamma (z) = $</label>
+                <input id ="pathFunction" name ="pathFunction" type="text" class="w-full md:text-xl p-1" placeholder="e**(i*z)">
+            </div>
+
+            <div class="flex">
+                <label for="pathFrom" class="text-base-content label p-0.5 md:p-2 pr-2">
+                    From $z_0 = $</label>
+                <input id ="pathFrom" name ="pathFrom" type="text" class="w-full md:text-xl p-1" placeholder="0">
+            </div>
+
+            <div class="flex">
+                <label for="pathTo" class="text-base-content label p-0.5 md:p-2 pr-2">
+                    To $z_1 = $</label>
+                <input id ="pathTo" name ="pathTo" type="text" class="w-full md:text-xl p-1" placeholder="2*p">
+            </div>
+        </fieldset>
+
         <fieldset id="shareFunc" class="fieldset bg-base-200 border-base-300 rounded-box w-auto border p-1 md:p-3 md:text-xl align-middle">
             <legend class="fieldset-legend">Link to share Function</legend>
 
@@ -128,12 +155,13 @@
 </div>
 
 <script>
-    import Complex from 'complex.js';
+    import { e164 } from 'astro:schema';
+import Complex from 'complex.js';
 
     const TAU = Complex.PI.mul(2)
 
     const canvas = document.getElementById("ComplexFunc") as HTMLCanvasElement;
-    const ctx : CanvasRenderingContext2D = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const ctx : CanvasRenderingContext2D = canvas.getContext("2d", {alpha: false}) as CanvasRenderingContext2D;
 
     const input = document.getElementById("function-input") as HTMLInputElement;
 
@@ -141,6 +169,7 @@
     const radioCirc = document.getElementById("radioCirc") as HTMLInputElement;
     const radioLine = document.getElementById("radioLine") as HTMLInputElement;
     const radioDot = document.getElementById("radioDot") as HTMLInputElement;
+    const radioPath = document.getElementById("radioPath") as HTMLInputElement;
 
     const gridSettings = document.getElementById("gridSettings") as HTMLFieldSetElement;
     const gridStepRange = document.getElementById("gridStepRange") as HTMLInputElement;
@@ -156,7 +185,16 @@
     const checkbowIDiff = document.getElementById("showIDiff") as HTMLInputElement;
     const showPartialDiff = document.getElementById("showPartialDiff") as HTMLInputElement;
 
+    const pathSettings = document.getElementById("pathSettings") as HTMLFieldSetElement;
+    const pathFunction = document.getElementById("pathFunction") as HTMLInputElement;
+    const pathFrom = document.getElementById("pathFrom") as HTMLInputElement;
+    const pathTo = document.getElementById("pathTo") as HTMLInputElement;
+
     const shareURL = document.getElementById("shareURL") as HTMLParagraphElement;
+
+    const offscreenCanvas = document.createElement("canvas");
+    const offscreenCtx = offscreenCanvas.getContext("2d", {alpha: false}) as CanvasRenderingContext2D;
+
 
     let f: Function = (z : Complex) => {
         return z.exp();
@@ -497,6 +535,11 @@
     let doIDiff = false
     let doCR = false
 
+
+    let pathZ0 :Complex = Complex.ZERO
+    let pathZ1 :Complex = TAU.clone()
+    let gamma : Function = (z : Complex) => (z.mul(Complex.I).exp())
+
     let x = 0;
     let y = 0;
     let updateNeeded = true;
@@ -529,6 +572,7 @@
             }
         }
 
+        drawOffscreen()
         updateNeeded = true;
     });
 
@@ -595,27 +639,71 @@
         updateNeeded = true;
     })
 
-    function checkbowDiffListener(){
+    function checkboxDiffListener(){
         doRDiff = checkbowRDiff.checked
         doIDiff = checkbowIDiff.checked
         doCR = showPartialDiff.checked
         updateNeeded = true
     }
-    checkbowRDiff.addEventListener("input", checkbowDiffListener)
-    checkbowIDiff.addEventListener("input", checkbowDiffListener)
-    showPartialDiff.addEventListener("input", checkbowDiffListener)
-    window.addEventListener("load", checkbowDiffListener)
+    checkbowRDiff.addEventListener("input", checkboxDiffListener)
+    checkbowIDiff.addEventListener("input", checkboxDiffListener)
+    showPartialDiff.addEventListener("input", checkboxDiffListener)
+    window.addEventListener("load", checkboxDiffListener)
+
+    function pathFunctionListener() {
+        let cgamma = parseFunc(pathFunction.value)
+        if (cgamma == null && pathFunction.value != ""){
+            pathFunction.classList.add("text-error")
+        } else {
+            pathFunction.classList.remove("text-error")
+            if (cgamma != null) gamma = cgamma;
+            else gamma = (z : Complex) => z.mul(Complex.I).exp();
+            updateNeeded = true;
+        }
+    }
+    pathFunction.addEventListener("input", (e) => {pathFunctionListener()})
+    window.addEventListener("load", (e) => {pathFunctionListener()})
+
+    function pathFromListener() {
+        let cz = parseFunc(pathFrom.value)
+        if (pathFrom.value.includes("z") || (cz == null && pathFrom.value != "")){
+            pathFrom.classList.add("text-error")
+        } else {
+            pathFrom.classList.remove("text-error")
+            if (cz != null) pathZ0 = cz(Complex.ZERO);
+            else pathZ0 = Complex.ZERO;
+            updateNeeded = true;
+        }
+    }
+    pathFrom.addEventListener("input", (e) => {pathFromListener()})
+    window.addEventListener("load", (e) => {pathFromListener()})
+
+    function pathToListener() {
+        let cz = parseFunc(pathTo.value)
+        if (pathTo.value.includes("z") || (cz == null && pathTo.value != "")){
+            pathTo.classList.add("text-error")
+        } else {
+            pathTo.classList.remove("text-error")
+            if (cz != null) pathZ1 = cz(Complex.ZERO);
+            else pathZ1 = TAU;
+            updateNeeded = true;
+        }
+    }
+    pathTo.addEventListener("input", (e) => {pathToListener()})
+    window.addEventListener("load", (e) => {pathToListener()})
 
     function modeSelectionListener (e: Event) {
         if (radioGrid.checked) mode = "GRID";
         else if (radioCirc.checked) mode = "CIRC";
         else if (radioLine.checked) mode = "LINE";
         else if (radioDot.checked) mode = "DOT";
+        else if (radioPath.checked) mode = "PATH";
 
         gridSettings.hidden = mode != "GRID";
         circSettings.hidden = mode != "CIRC";
         lineSettings.hidden = mode != "LINE";
         dotSettings.hidden = mode != "DOT";
+        pathSettings.hidden = mode != "PATH";
 
         updateNeeded = true;
     }
@@ -624,6 +712,7 @@
     radioCirc.addEventListener("input", modeSelectionListener)
     radioLine.addEventListener("input", modeSelectionListener)
     radioDot.addEventListener("input", modeSelectionListener)
+    radioPath.addEventListener("input", modeSelectionListener)
     window.addEventListener("load", modeSelectionListener)
 
     function screentf(x : number, y : number) : [number,number] {return [x+canvas.width/2, y+canvas.height/2]}
@@ -638,7 +727,6 @@
         let gdir = Complex.E.pow(Complex.PI.mul(Complex(0,2/3)))
         let bdir= Complex.E.pow(Complex.PI.mul(Complex(0,4/3)))
 
-
         let rraw = z.re * rdir.re + z.im * rdir.im
         let graw = z.re * gdir.re + z.im * gdir.im
         let braw = z.re * bdir.re + z.im * bdir.im
@@ -652,50 +740,50 @@
     }
 
     function drawScrollButtons(){
-        ctx.fillStyle = "#22222222"
-        ctx.beginPath()
-        ctx.rect(10,30,40,40)
-        ctx.ellipse(30,30,20,20,0,0,360)
-        ctx.ellipse(30,70,20,20,0,0,360)
-        ctx.fill()
+        offscreenCtx.fillStyle = "#bbbbbb"
+        offscreenCtx.beginPath()
+        offscreenCtx.rect(10,30,40,40)
+        offscreenCtx.ellipse(30,30,20,20,0,0,360)
+        offscreenCtx.ellipse(30,70,20,20,0,0,360)
+        offscreenCtx.fill()
 
         // divider
-        ctx.fillStyle = "#00000022"
-        ctx.fillRect(10,49,40,2)
+        offscreenCtx.fillStyle = "#00000022"
+        offscreenCtx.fillRect(10,49,40,2)
         
         // +
-        ctx.fillStyle = "#00000044"
-        ctx.beginPath()
-        ctx.rect(20,28,20,4)
-        ctx.rect(28,20,4,20)
-        ctx.fill()
+        offscreenCtx.fillStyle = "#00000044"
+        offscreenCtx.beginPath()
+        offscreenCtx.rect(20,28,20,4)
+        offscreenCtx.rect(28,20,4,20)
+        offscreenCtx.fill()
 
         // -
-        ctx.fillStyle = "#00000044"
-        ctx.beginPath()
-        ctx.rect(20,68,20,4)
-        ctx.fill()
+        offscreenCtx.fillStyle = "#00000044"
+        offscreenCtx.beginPath()
+        offscreenCtx.rect(20,68,20,4)
+        offscreenCtx.fill()
     }
 
     function  drawCoords(){
-        ctx.lineWidth = 3
-        ctx.strokeStyle = "#000000"
-        ctx.beginPath()
-        ctx.moveTo(...screentf(0,-canvas.height))
-        ctx.lineTo(...screentf(0,canvas.height))
-        ctx.moveTo(...screentf(-canvas.width,0))
-        ctx.lineTo(...screentf(canvas.width,0))
+        offscreenCtx.lineWidth = 3
+        offscreenCtx.strokeStyle = "#000000"
+        offscreenCtx.beginPath()
+        offscreenCtx.moveTo(...screentf(0,-canvas.height))
+        offscreenCtx.lineTo(...screentf(0,canvas.height))
+        offscreenCtx.moveTo(...screentf(-canvas.width,0))
+        offscreenCtx.lineTo(...screentf(canvas.width,0))
 
         for (let i = Math.floor(-canvas.width/zoom); i < canvas.width/zoom; i++) {
-            ctx.moveTo(...CtoScreen(Complex(i, -0.1)));
-            ctx.lineTo(...CtoScreen(Complex(i, +0.1)));
+            offscreenCtx.moveTo(...CtoScreen(Complex(i, -0.1)));
+            offscreenCtx.lineTo(...CtoScreen(Complex(i, +0.1)));
         }
 
         for (let i = Math.floor(-canvas.height/zoom); i < canvas.height/zoom; i++) {
-            ctx.moveTo(...CtoScreen(Complex(-0.1, i)));
-            ctx.lineTo(...CtoScreen(Complex(+0.1, i)));
+            offscreenCtx.moveTo(...CtoScreen(Complex(-0.1, i)));
+            offscreenCtx.lineTo(...CtoScreen(Complex(+0.1, i)));
         }
-        ctx.stroke()
+        offscreenCtx.stroke()
     }
 
     function drawMouseGrid(c : string, f : Function){
@@ -879,6 +967,85 @@
         }
     }
 
+    const twoTriangleArea = (x : Complex, y : Complex, z : Complex) => (x.re * (y.im - z.im) + y.re * (z.im - x.im) + z.re * (x.im - y.im))
+    
+
+    function drawSegment(f : Function, from : Complex, to : Complex){
+        ctx.lineWidth = 3
+
+        let l = from.div(to).abs()
+
+        let step : number = 1/0b1000000000
+
+        let min = 1/10000
+        let max = step
+
+        let g = (t : number) => (from.mul(1-t).add(to.mul(t)))
+
+        let bnd = ScreentoC(0,0).abs()*1.2
+        let px = ScreentoC(1,0).sub(ScreentoC(0,0)).abs()
+        px *= px; // squared
+
+        for (let t = 0; t <= 1; t += step){
+            let c = g(t);
+            //if (c.abs() > bnd) continue;
+            let err = twoTriangleArea(c, g(t + step/2), g(t+step))
+            while(err > px && step > min) {
+                step /= 2;
+                err = twoTriangleArea(c, g(t + step/2), g(t+step));
+            }
+            while(err < 0.1*px && step < max) {
+                step *= 2;
+                err = twoTriangleArea(c, g(t + step/2), g(t+step));
+            }
+            ctx.strokeStyle = "hsl("+360*t+",100%,50%)";
+            ctx.beginPath()
+            ctx.moveTo(...CtoScreen(f(c)));
+            ctx.lineTo(...CtoScreen(f(g(t+step))));
+            ctx.stroke();
+        }
+    }
+
+    function drawSegmentDashed(f : Function, from : Complex, to : Complex){
+        ctx.lineWidth = 3
+
+        let l = from.div(to).abs()
+
+        let step : number = 1/0b1000000000
+
+        let min = 1/10000
+        let max = step
+
+        let g = (t : number) => (from.mul(1-t).add(to.mul(t)))
+        let h = (t : number) => f(g(t))
+
+        let bnd = ScreentoC(0,0).abs()*1.2
+        let px = ScreentoC(1,0).sub(ScreentoC(0,0)).abs()
+        px *= px; // squared
+
+        console.log(bnd)
+
+        for (let t = 0; t <= 1; t += step){
+            if (100*t % 2 < 1) continue
+            let c = h(t);
+            if (c.abs() > bnd) continue;
+            let err = twoTriangleArea(c, h(t + step/2), h(t+step))
+            while(err > px && step > min) {
+                step /= 2;
+                err = twoTriangleArea(c, h(t + step/2), h(t+step));
+            }
+            while(err < 0.1*px && step < max) {
+                step *= 2;
+                err = twoTriangleArea(c, h(t + step/2), h(t+step));
+            }
+            ctx.strokeStyle = "hsl("+360*t+",100%,50%)";
+            ctx.beginPath()
+            ctx.moveTo(...CtoScreen(c));
+            ctx.lineTo(...CtoScreen(h(t+step)));
+            ctx.stroke();
+        }
+    }
+
     function drawLine(f : Function, z : Complex, w : Complex){
         ctx.lineWidth = 3
 
@@ -993,30 +1160,25 @@
         ctx.strokeStyle = c
         ctx.beginPath()
 
-        drawDashed(f(z), f(z).add(ux), c)
         ctx.font = "20px ubuntu";
         ctx.fillStyle = c
+
+        drawDashed(f(z), f(z).add(ux), c)
         ctx.textAlign = "center"
         ctx.textBaseline = vx >= 0 ? "hanging" : "alphabetic"
         ctx.fillText(ux < 0 ? "-ux" : "ux", ...CtoScreen(f(z).add(ux/2).add(Complex(0,-5/zoom * Math.sign(vx)))));
 
         drawDashed(f(z).add(ux), f(z).add(ux).add(Complex(0,vx)), c)
-        ctx.font = "20px ubuntu";
-        ctx.fillStyle = c
         ctx.textAlign = ux >= 0 ? "left" : "right"
         ctx.textBaseline = "middle"
         ctx.fillText(vx < 0 ? "-vx" : "vx", ...CtoScreen(f(z).add(ux).add(Complex(0,vx/2).add(5/zoom * Math.sign(ux)))));
 
         drawDashed(f(z), f(z).add(Complex(0,vy)), c)
-        ctx.font = "20px ubuntu";
-        ctx.fillStyle = c
         ctx.textAlign = uy <= 0 ? "left" : "right"
         ctx.textBaseline = "middle"
         ctx.fillText(vy < 0 ? "-vy" :"vy", ...CtoScreen(f(z).add(Complex(0,vy/2).add(-5/zoom * Math.sign(uy)))));
 
         drawDashed(f(z).add(Complex(0,vy)), f(z).add(Complex(0,vy)).add(uy), c)
-        ctx.font = "20px ubuntu";
-        ctx.fillStyle = c
         ctx.textAlign = "center"
         ctx.textBaseline = vy <= 0 ? "hanging" : "alphabetic"
         ctx.fillText(uy < 0? "-uy" : "uy", ...CtoScreen(f(z).add(Complex(0,vy)).add(uy/2).add(Complex(0,5/zoom * Math.sign(vy)))));
@@ -1024,14 +1186,20 @@
         ctx.stroke();
     }
 
-    function mainloop(){
-        if (!updateNeeded) {setTimeout(mainloop,5); return} 
-        updateNeeded = false;
-
-        ctx.fillStyle = "#ffffff"
-        ctx.fillRect(-5,-5, canvas.width+10, canvas.height+10)
+    function drawOffscreen(){
+        offscreenCtx.fillStyle = "#ffffff"
+        offscreenCtx.fillRect(-5,-5, canvas.width+10, canvas.height+10)
+        
+        drawScrollButtons();
 
         drawCoords();
+    }
+
+    function mainloop(){
+        if (!updateNeeded) {requestAnimationFrame(mainloop);return;} 
+        updateNeeded = false;
+
+        ctx.drawImage(offscreenCanvas, 0, 0);
 
         let z = ScreentoC(x,y)
 
@@ -1058,16 +1226,17 @@
             drawDot(f(z), "#ff0000")
 
             //drawDashed(z, f(z), "#ffff00")
+        } else if (mode == "PATH"){
+            drawSegmentDashed(gamma, pathZ0, pathZ1)
+            drawSegment((z : Complex) => f(gamma(z)), pathZ0, pathZ1)
+            console.log("test")
         }
 
-        drawScrollButtons();
-
-        setTimeout(mainloop,5)
+        requestAnimationFrame(mainloop)
     }
 
-    mainloop();
 
-    window.addEventListener("resize", (e) => {
+    function screenListener(e : Event) {
         if (window.innerWidth < window.innerHeight){
             canvas.height = 2000;
             canvas.width = 1000;
@@ -1075,19 +1244,19 @@
             canvas.height = 1000;
             canvas.width = 2000;
         }
-        updateNeeded = true
-    })
 
-    window.addEventListener("load", (e) => {
-        if (window.innerWidth < window.innerHeight){
-            canvas.height = 2000;
-            canvas.width = 1000;
-        } else {
-            canvas.height = 1000;
-            canvas.width = 2000;
-        }
+
+        offscreenCanvas.width = canvas.width;
+        offscreenCanvas.height = canvas.height;
+
+        drawOffscreen();
+
         updateNeeded = true
-    })
+    }
+
+    window.addEventListener("resize", screenListener)
+
+    window.addEventListener("load", screenListener)
 
     const exampleFunctions = document.getElementById("exampleFunctions") as HTMLFieldSetElement;
 
@@ -1107,4 +1276,7 @@
             };
         }
     });
+
+
+    requestAnimationFrame(mainloop);
 </script>
