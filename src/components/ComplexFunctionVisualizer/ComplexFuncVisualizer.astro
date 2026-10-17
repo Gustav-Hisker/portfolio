@@ -973,8 +973,6 @@ import Complex from 'complex.js';
     function drawSegment(f : Function, from : Complex, to : Complex){
         ctx.lineWidth = 3
 
-        let l = from.div(to).abs()
-
         let step : number = 1/0b1000000000
 
         let min = 1/10000
@@ -989,20 +987,24 @@ import Complex from 'complex.js';
 
         for (let t = 0; t <= 1; t += step){
             let c = h(t);
+            let n = h(t+step);
+            s += c.sub(n).abs()
             if (c.abs() > bnd) continue;
-            let err = twoTriangleArea(c, h(t + step/2), h(t+step))
+            let err = twoTriangleArea(c, h(t + step/2), n)
             while(err > px && step > min) {
                 step /= 2;
-                err = twoTriangleArea(c, h(t + step/2), h(t+step));
+                n = h(t+step);
+                err = twoTriangleArea(c, h(t + step/2), n);
             }
             while(err < 0.1*px && step < max) {
                 step *= 2;
-                err = twoTriangleArea(c, h(t + step/2), h(t+step));
+                n = h(t+step);
+                err = twoTriangleArea(c, h(t + step/2), n);
             }
             ctx.strokeStyle = "hsl("+360*t+",100%,50%)";
             ctx.beginPath()
             ctx.moveTo(...CtoScreen(c));
-            ctx.lineTo(...CtoScreen(h(t+step)));
+            ctx.lineTo(...CtoScreen(n));
             ctx.stroke();
         }
     }
@@ -1010,8 +1012,6 @@ import Complex from 'complex.js';
     function drawSegmentDashed(f : Function, from : Complex, to : Complex){
         ctx.lineWidth = 3
 
-        let l = from.div(to).abs()
-
         let step : number = 1/0b1000000000
 
         let min = 1/10000
@@ -1024,25 +1024,29 @@ import Complex from 'complex.js';
         let px = ScreentoC(1,0).sub(ScreentoC(0,0)).abs()
         px *= px; // squared
 
-        console.log(bnd)
+        let s = 0;
 
         for (let t = 0; t <= 1; t += step){
-            if (100*t % 2 < 1) continue
             let c = h(t);
+            let n = h(t+step);
+            s += c.sub(n).abs()
+            if (10 * s % 2 < 1) continue;
             if (c.abs() > bnd) continue;
-            let err = twoTriangleArea(c, h(t + step/2), h(t+step))
+            let err = twoTriangleArea(c, h(t + step/2), n)
             while(err > px && step > min) {
                 step /= 2;
-                err = twoTriangleArea(c, h(t + step/2), h(t+step));
+                n = h(t+step);
+                err = twoTriangleArea(c, h(t + step/2), n);
             }
             while(err < 0.1*px && step < max) {
                 step *= 2;
-                err = twoTriangleArea(c, h(t + step/2), h(t+step));
+                n = h(t+step);
+                err = twoTriangleArea(c, h(t + step/2), n);
             }
             ctx.strokeStyle = "hsl("+360*t+",100%,50%)";
             ctx.beginPath()
             ctx.moveTo(...CtoScreen(c));
-            ctx.lineTo(...CtoScreen(h(t+step)));
+            ctx.lineTo(...CtoScreen(n));
             ctx.stroke();
         }
     }
