@@ -989,7 +989,7 @@ import Complex from 'complex.js';
             let c = h(t);
             let n = h(t+step);
             s += c.sub(n).abs()
-            if (c.abs() > bnd) continue;
+            if (c.abs() > bnd && n.abs() > bnd) continue;
             let err = twoTriangleArea(c, h(t + step/2), n)
             while(err > px && step > min) {
                 step /= 2;
@@ -1031,7 +1031,7 @@ import Complex from 'complex.js';
             let n = h(t+step);
             s += c.sub(n).abs()
             if (10 * s % 2 < 1) continue;
-            if (c.abs() > bnd) continue;
+            if (c.abs() > bnd && n.abs() > bnd) continue;
             let err = twoTriangleArea(c, h(t + step/2), n)
             while(err > px && step > min) {
                 step /= 2;
