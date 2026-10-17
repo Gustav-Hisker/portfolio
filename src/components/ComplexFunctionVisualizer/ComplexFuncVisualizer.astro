@@ -981,27 +981,28 @@ import Complex from 'complex.js';
         let max = step
 
         let g = (t : number) => (from.mul(1-t).add(to.mul(t)))
+        let h = (t : number) => f(g(t))
 
         let bnd = ScreentoC(0,0).abs()*1.2
         let px = ScreentoC(1,0).sub(ScreentoC(0,0)).abs()
         px *= px; // squared
 
         for (let t = 0; t <= 1; t += step){
-            let c = g(t);
-            //if (c.abs() > bnd) continue;
-            let err = twoTriangleArea(c, g(t + step/2), g(t+step))
+            let c = h(t);
+            if (c.abs() > bnd) continue;
+            let err = twoTriangleArea(c, h(t + step/2), h(t+step))
             while(err > px && step > min) {
                 step /= 2;
-                err = twoTriangleArea(c, g(t + step/2), g(t+step));
+                err = twoTriangleArea(c, h(t + step/2), h(t+step));
             }
             while(err < 0.1*px && step < max) {
                 step *= 2;
-                err = twoTriangleArea(c, g(t + step/2), g(t+step));
+                err = twoTriangleArea(c, h(t + step/2), h(t+step));
             }
             ctx.strokeStyle = "hsl("+360*t+",100%,50%)";
             ctx.beginPath()
-            ctx.moveTo(...CtoScreen(f(c)));
-            ctx.lineTo(...CtoScreen(f(g(t+step))));
+            ctx.moveTo(...CtoScreen(c));
+            ctx.lineTo(...CtoScreen(h(t+step)));
             ctx.stroke();
         }
     }
