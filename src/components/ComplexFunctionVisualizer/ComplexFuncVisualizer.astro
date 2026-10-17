@@ -1030,20 +1030,20 @@ import Complex from 'complex.js';
             let c = h(t);
             let n = h(t+step);
             s += c.sub(n).abs()
-            if (10 * s % 2 < 1) continue;
+            //if (10 * s % 2 < 1 && c.sub(n).abs() < 1) continue;
             if (c.abs() > bnd && n.abs() > bnd) continue;
             let err = twoTriangleArea(c, h(t + step/2), n)
-            while(err > px && step > min) {
+            while((err > px || c.sub(n).abs()*20 > 2) && step > min) {
                 step /= 2;
                 n = h(t+step);
                 err = twoTriangleArea(c, h(t + step/2), n);
             }
-            while(err < 0.1*px && step < max) {
+            while(err < 0.1*px && step < max && c.sub(n).abs()*20 < 1) {
                 step *= 2;
                 n = h(t+step);
                 err = twoTriangleArea(c, h(t + step/2), n);
             }
-            ctx.strokeStyle = "hsl("+360*t+",100%,50%)";
+            ctx.strokeStyle = "hsla("+360*t+",100%,50%,30%)";
             ctx.beginPath()
             ctx.moveTo(...CtoScreen(c));
             ctx.lineTo(...CtoScreen(n));
