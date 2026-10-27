@@ -981,6 +981,8 @@ import Complex from 'complex.js';
         let g = (t : number) => (from.mul(1-t).add(to.mul(t)))
         let h = (t : number) => f(g(t))
 
+        let s = 0;
+
         let bnd = ScreentoC(0,0).abs()*1.2
         let px = ScreentoC(1,0).sub(ScreentoC(0,0)).abs()
         px *= px; // squared
